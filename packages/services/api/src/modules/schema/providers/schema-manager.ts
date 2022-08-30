@@ -15,6 +15,7 @@ import { TargetAccessScope } from '../../auth/providers/target-access';
 import { ProjectAccessScope } from '../../auth/providers/project-access';
 import { CryptoProvider } from '../../shared/providers/crypto';
 import { z } from 'zod';
+import { ensureCompositeSchemas } from './schema-helper';
 
 const ENABLE_EXTERNAL_COMPOSITION_SCHEMA = z.object({
   endpoint: z.string().url().nonempty(),
@@ -106,7 +107,7 @@ export class SchemaManager {
       scope: TargetAccessScope.REGISTRY_READ,
     });
 
-    const version = await this.storage.getMaybeLatestValidVersion(selector);
+    const version = await this.storage.getMaybeLatestComposableVersion(selector);
 
     if (!version) {
       return null;
@@ -127,7 +128,7 @@ export class SchemaManager {
       scope: TargetAccessScope.REGISTRY_READ,
     });
     return {
-      ...(await this.storage.getLatestValidVersion(selector)),
+      ...(await this.storage.getLatestComposableVersion(selector)),
       project: selector.project,
       target: selector.target,
       organization: selector.organization,
@@ -261,16 +262,18 @@ export class SchemaManager {
       commit: string;
       schema: string;
       author: string;
-      valid: boolean;
+      isComposable: boolean;
       service?: string | null;
       commits: string[];
       url?: string | null;
       base_schema: string | null;
       metadata: string | null;
+      action: 'ADD' | 'MODIFY' | 'N/A';
     } & TargetSelector
   ) {
     this.logger.info('Creating a new version (input=%o)', lodash.omit(input, ['schema']));
-    const { valid, project, organization, target, commit, schema, author, commits, url, metadata } = input;
+    const { isComposable, project, organization, target, commit, schema, author, commits, url, metadata, action } =
+      input;
     let service = input.service;
 
     await this.authManager.ensureTargetAccess({
@@ -295,11 +298,12 @@ export class SchemaManager {
       author,
       url,
       metadata,
+      action,
     });
 
     // finally create a version
     return this.storage.createVersion({
-      valid,
+      isComposable,
       organization,
       project,
       target,
@@ -338,6 +342,7 @@ export class SchemaManager {
       service?: string | null;
       url?: string | null;
       metadata: string | null;
+      action: 'ADD' | 'MODIFY' | 'N/A';
     } & TargetSelector
   ) {
     this.logger.info('Inserting schema (input=%o)', lodash.omit(input, ['schema']));
@@ -383,14 +388,16 @@ export class SchemaManager {
       throw new HiveError(`Project type "${input.projectType}" doesn't support service name updates`);
     }
 
-    const schemas = await this.storage.getSchemasOfVersion({
-      version: input.version,
-      target: input.target,
-      project: input.project,
-      organization: input.organization,
-    });
+    const schemas = ensureCompositeSchemas(
+      await this.storage.getSchemasOfVersion({
+        version: input.version,
+        target: input.target,
+        project: input.project,
+        organization: input.organization,
+      })
+    );
 
-    const schema = schemas.find(s => s.service === input.name);
+    const schema = schemas.find(s => s.service_name === input.name);
 
     if (!schema) {
       throw new HiveError(`Couldn't find service "${input.name}"`);
@@ -400,7 +407,7 @@ export class SchemaManager {
       throw new HiveError(`Service name can't be empty`);
     }
 
-    const duplicatedSchema = schemas.find(s => s.service === input.newName);
+    const duplicatedSchema = schemas.find(s => s.service_name === input.newName);
 
     if (duplicatedSchema) {
       throw new HiveError(`Service "${input.newName}" already exists`);

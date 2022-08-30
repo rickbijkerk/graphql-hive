@@ -1,4 +1,5 @@
 import { DocumentNode, GraphQLError, SourceLocation } from 'graphql';
+import { z } from 'zod';
 import type {
   SchemaError,
   AlertChannelType,
@@ -10,17 +11,76 @@ import type {
 } from '../__generated__/types';
 import { parse } from 'graphql';
 
-export interface Schema {
-  id: string;
-  author: string;
-  source: string;
-  date: string;
-  commit: string;
-  target: string;
-  url?: string | null;
-  service?: string | null;
-  metadata?: Record<string, any> | null;
-}
+export const SingleSchemaModel = z
+  .object({
+    id: z.string(),
+    author: z.string(),
+    date: z.number(),
+    commit: z.string(),
+    target: z.string(),
+    sdl: z.string(),
+    metadata: z.any().nullish(),
+  })
+  .required();
+
+export type SingleSchema = z.infer<typeof SingleSchemaModel>;
+
+export const DeletedCompositeSchemaModel = z
+  .object({
+    id: z.string(),
+    author: z.string(),
+    date: z.number(),
+    commit: z.string(),
+    target: z.string(),
+    service_name: z.string(),
+    action: z.literal('DELETE'),
+  })
+  .required();
+
+export type DeletedCompositeSchema = z.infer<typeof DeletedCompositeSchemaModel>;
+
+export const AddedCompositeSchemaModel = z
+  .object({
+    id: z.string(),
+    author: z.string(),
+    date: z.number(),
+    commit: z.string(),
+    target: z.string(),
+    sdl: z.string(),
+    service_name: z.string(),
+    service_url: z.string().nullable(),
+    action: z.literal('ADD'),
+    metadata: z.any().nullish(),
+  })
+  .required();
+
+export type AddedCompositeSchema = z.infer<typeof AddedCompositeSchemaModel>;
+
+export const ModifiedCompositeSchemaModel = z
+  .object({
+    id: z.string(),
+    author: z.string(),
+    date: z.number(),
+    commit: z.string(),
+    target: z.string(),
+    sdl: z.string(),
+    service_name: z.string(),
+    service_url: z.string().nullable(),
+    action: z.literal('MODIFY'),
+    metadata: z.any().nullish(),
+  })
+  .required();
+
+export type ModifiedCompositeSchema = z.infer<typeof ModifiedCompositeSchemaModel>;
+
+export const CompositeSchemaModel = z.union([
+  DeletedCompositeSchemaModel,
+  AddedCompositeSchemaModel,
+  ModifiedCompositeSchemaModel,
+]);
+export type CompositeSchema = z.infer<typeof CompositeSchemaModel>;
+export type Schema = SingleSchema | CompositeSchema;
+export type SchemaWithSDL = SingleSchema | AddedCompositeSchema | ModifiedCompositeSchema;
 
 export interface DateRange {
   from: Date;
@@ -29,7 +89,7 @@ export interface DateRange {
 
 export interface SchemaVersion {
   id: string;
-  valid: boolean;
+  isComposable: boolean;
   date: number;
   commit: string;
   base_schema: string | null;
@@ -61,11 +121,13 @@ export class GraphQLDocumentStringInvalidError extends Error {
   }
 }
 
-export function createSchemaObject(schema: Schema): SchemaObject {
+export function createSchemaObject(
+  schema: SingleSchema | AddedCompositeSchema | ModifiedCompositeSchema
+): SchemaObject {
   let document: DocumentNode;
 
   try {
-    document = parse(schema.source);
+    document = parse(schema.sdl);
   } catch (err) {
     if (err instanceof GraphQLError) {
       throw new GraphQLDocumentStringInvalidError(err.message, err.locations?.[0]);
@@ -75,9 +137,9 @@ export function createSchemaObject(schema: Schema): SchemaObject {
 
   return {
     document,
-    raw: schema.source,
-    source: schema.service ?? emptySource,
-    url: schema.url ?? null,
+    raw: schema.sdl,
+    source: 'service_name' in schema ? schema.service_name : emptySource,
+    url: 'service_url' in schema ? schema.service_url : null,
   };
 }
 
@@ -139,11 +201,18 @@ export interface Project {
   buildUrl?: string | null;
   validationUrl?: string | null;
   gitRepository?: string | null;
-  externalComposition: {
-    enabled: boolean;
-    endpoint?: string | null;
-    encryptedSecret?: string | null;
-  };
+  isUsingLegacyRegistryModel: boolean;
+  externalComposition:
+    | {
+        enabled: true;
+        endpoint: string;
+        encryptedSecret: string;
+      }
+    | {
+        enabled: false;
+        endpoint: null;
+        encryptedSecret: null;
+      };
 }
 
 export interface Target {
@@ -196,9 +265,9 @@ export interface TargetSettings {
 
 export interface Orchestrator {
   ensureConfig(config: any): void | never;
-  validate(schemas: SchemaObject[], config: any): Promise<SchemaError[]>;
-  build(schemas: SchemaObject[], config: any): Promise<SchemaObject>;
-  supergraph(schemas: SchemaObject[], config: any): Promise<string | null>;
+  validate(schemas: readonly SchemaObject[], config: any): Promise<SchemaError[]>;
+  build(schemas: readonly SchemaObject[], config: any): Promise<SchemaObject>;
+  supergraph(schemas: readonly SchemaObject[], config: any): Promise<string | null>;
 }
 
 export interface ActivityObject {

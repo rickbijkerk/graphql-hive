@@ -38,6 +38,7 @@ export class ProjectManager {
     input: {
       name: string;
       type: ProjectType;
+      useLegacyRegistryModel?: boolean | null;
     } & OrganizationSelector &
       NullableAndPartial<CustomOrchestratorConfig>
   ): Promise<Project> {
@@ -61,6 +62,7 @@ export class ProjectManager {
       organization,
       buildUrl,
       validationUrl,
+      isUsingLegacyRegistryModel: input.useLegacyRegistryModel === true,
     });
 
     await Promise.all([

@@ -117,7 +117,9 @@ export interface Storage {
   getProjectByCleanId(_: { cleanId: string } & OrganizationSelector): Promise<Project | null>;
   getProjects(_: OrganizationSelector): Promise<Project[] | never>;
   createProject(
-    _: Pick<Project, 'name' | 'cleanId' | 'type'> & NullableAndPartial<CustomOrchestratorConfig> & OrganizationSelector
+    _: Pick<Project, 'name' | 'cleanId' | 'type' | 'isUsingLegacyRegistryModel'> &
+      NullableAndPartial<CustomOrchestratorConfig> &
+      OrganizationSelector
   ): Promise<Project | never>;
   deleteProject(_: ProjectSelector): Promise<Project | never>;
   updateProjectName(
@@ -162,8 +164,8 @@ export interface Storage {
       }
     | never
   >;
-  getLatestValidVersion(_: TargetSelector): Promise<SchemaVersion | never>;
-  getMaybeLatestValidVersion(_: TargetSelector): Promise<SchemaVersion | null | never>;
+  getLatestComposableVersion(_: TargetSelector): Promise<SchemaVersion | never>;
+  getMaybeLatestComposableVersion(_: TargetSelector): Promise<SchemaVersion | null | never>;
   getLatestVersion(_: TargetSelector): Promise<SchemaVersion | never>;
   getMaybeLatestVersion(_: TargetSelector): Promise<SchemaVersion | null>;
 
@@ -198,12 +200,13 @@ export interface Storage {
       service?: string | null;
       url?: string | null;
       metadata: string | null;
+      action: 'ADD' | 'MODIFY' | 'N/A';
     } & TargetSelector
   ): Promise<Schema | never>;
 
   createVersion(
     _: {
-      valid: boolean;
+      isComposable: boolean;
       url?: string | null;
       commit: string;
       commits: string[];
