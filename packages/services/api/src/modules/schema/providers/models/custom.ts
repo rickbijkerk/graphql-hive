@@ -50,16 +50,20 @@ export class CustomModel {
     const validationResult = await this.schemaValidator.validate({
       orchestrator: this.orchestrator,
       isInitial,
-      incoming: this.helper.createSchemaObject(incoming),
-      existing: existing && isAddedOrModified(existing) ? this.helper.createSchemaObject(existing) : null,
-      before,
-      after,
+      compare: {
+        incoming: this.helper.createSchemaObject(incoming),
+        existing: existing && isAddedOrModified(existing) ? this.helper.createSchemaObject(existing) : null,
+      },
+      schemas: {
+        baseSchema,
+        before,
+        after,
+      },
       selector: {
         organization: input.organization,
         project: input.project,
         target: input.target,
       },
-      baseSchema,
       acceptBreakingChanges: false,
       project,
     });

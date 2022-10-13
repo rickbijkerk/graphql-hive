@@ -114,6 +114,34 @@ export const resolvers: SchemaModule.Resolvers = {
         isSchemaPublishMissingUrlErrorSelected,
       });
     },
+    async schemaDelete(_, { input }, { injector }) {
+      const [organization, project, target] = await Promise.all([
+        injector.get(OrganizationManager).getOrganizationIdByToken(),
+        injector.get(ProjectManager).getProjectIdByToken(),
+        injector.get(TargetManager).getTargetIdByToken(),
+      ]);
+
+      const result = await injector.get(SchemaPublisher).delete({
+        serviceName: input.serviceName,
+        force: input.force,
+        organization,
+        project,
+        target,
+      });
+
+      if (result.ok) {
+        return {
+          ok: {
+            ...result.ok,
+            date: result.ok.date as any,
+          },
+        };
+      }
+
+      return {
+        errors: result.errors,
+      };
+    },
     async updateSchemaVersionStatus(_, { input }, { injector }) {
       const translator = injector.get(IdTranslator);
       const [organization, project, target] = await Promise.all([
@@ -188,7 +216,7 @@ export const resolvers: SchemaModule.Resolvers = {
         translator.translateTargetId(input),
       ]);
 
-      const { type: projectType } = await injector.get(ProjectManager).getProject({
+      const { type: projectType, isUsingLegacyRegistryModel } = await injector.get(ProjectManager).getProject({
         organization,
         project,
       });
@@ -201,6 +229,7 @@ export const resolvers: SchemaModule.Resolvers = {
         name: input.name,
         newName: input.newName,
         projectType,
+        isUsingLegacyRegistryModel,
       });
 
       return {

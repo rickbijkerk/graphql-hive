@@ -23,6 +23,7 @@ import { ensureCompositeSchemas, ensureSchemasWithSDL, isAddedOrModified, Schema
 import { Conclusion } from './models/shared';
 import { CompositeModel } from './models/composite';
 import { SingleModel } from './models/single';
+import { HiveError } from '../../../shared/errors';
 
 export type CheckInput = Omit<Types.SchemaCheckInput, 'project' | 'organization' | 'target'> & TargetSelector;
 
@@ -31,6 +32,8 @@ export type PublishInput = Types.SchemaPublishInput &
     checksum: string;
     isSchemaPublishMissingUrlErrorSelected: boolean;
   };
+
+export type DeleteInput = Types.SchemaDeleteInput & TargetSelector;
 
 type BreakPromise<T> = T extends Promise<infer U> ? U : never;
 
@@ -165,6 +168,55 @@ export class SchemaPublisher {
       ...validationResult,
       valid: validationResult.isComposable && !validationResult.hasBreakingChanges,
       initial: isInitial,
+    };
+  }
+
+  @sentry('SchemaPublisher.delete')
+  async delete(input: DeleteInput) {
+    this.logger.info('Checking schema (input=%o)', lodash.omit(input, ['sdl']));
+
+    await this.authManager.ensureTargetAccess({
+      target: input.target,
+      project: input.project,
+      organization: input.organization,
+      scope: TargetAccessScope.REGISTRY_WRITE,
+    });
+
+    // deleting a service should be valid or not, if we remove a service and it results in breaking changes, we should inform user about it
+    // --force flag should auto-accept breaking changes
+
+    const [project, latestSchemas] = await Promise.all([
+      this.projectManager.getProject({
+        organization: input.organization,
+        project: input.project,
+      }),
+      this.schemaManager.getLatestSchemas({
+        organization: input.organization,
+        project: input.project,
+        target: input.target,
+      }),
+    ]);
+
+    const isCompositeSchemaProject = project.type === ProjectType.FEDERATION || project.type === ProjectType.STITCHING;
+
+    if (!isCompositeSchemaProject) {
+      throw new HiveError(`Deleting schemas is not available for ${project.type}-type projects`);
+    }
+
+    const deletion = await this.composite.delete({
+      input,
+      project,
+      currentSchemas: latestSchemas.schemas,
+    });
+
+    if (deletion.conclusion === Conclusion.Reject) {
+      return {
+        errors: deletion.errors,
+      };
+    }
+
+    return {
+      ok: deletion.deletedService,
     };
   }
 

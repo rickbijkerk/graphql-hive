@@ -28,51 +28,56 @@ export class SchemaValidator {
   async validate({
     orchestrator,
     selector,
-    incoming,
-    existing,
+    compare,
     isInitial,
-    before,
-    after,
-    baseSchema,
+    schemas,
     acceptBreakingChanges,
     project,
   }: {
     orchestrator: Orchestrator;
     isInitial: boolean;
-    incoming: SchemaObject;
-    existing: SchemaObject | null;
-    before: readonly SchemaObject[];
-    after: readonly SchemaObject[];
+    compare:
+      | {
+          incoming: SchemaObject;
+          existing: SchemaObject | null;
+        }
+      | false;
+    schemas: {
+      baseSchema: string | null;
+      before: readonly SchemaObject[];
+      after: readonly SchemaObject[];
+    };
     selector: Types.TargetSelector;
-    baseSchema: string | null;
     acceptBreakingChanges: boolean;
     project: Project;
   }): Promise<ValidationResult> {
     this.logger.debug('Validating Schema');
-    const afterWithBase = baseSchema
-      ? after.map((schema, index) => {
+    const afterWithBase = schemas.baseSchema
+      ? schemas.after.map((schema, index) => {
           if (index === 0) {
             return {
               ...schema,
-              raw: (baseSchema || '') + schema.raw,
-              document: concatAST([parse(baseSchema || ''), schema.document]),
+              raw: (schemas.baseSchema || '') + schema.raw,
+              document: concatAST([parse(schemas.baseSchema || ''), schema.document]),
             };
           } else {
             return schema;
           }
         })
-      : after;
+      : schemas.after;
 
-    const areIdentical = existing && hashSchema(existing) === hashSchema(incoming);
+    if (compare) {
+      const areIdentical = compare.existing && hashSchema(compare.existing) === hashSchema(compare.incoming);
 
-    if (areIdentical) {
-      // todo: check the is_composable of the existing version and pass it here
-      return {
-        isComposable: true,
-        hasBreakingChanges: false,
-        errors: [],
-        changes: [],
-      };
+      if (areIdentical) {
+        // todo: check the is_composable of the existing version and pass it here
+        return {
+          isComposable: true,
+          hasBreakingChanges: false,
+          errors: [],
+          changes: [],
+        };
+      }
     }
 
     const compositionErrors = await orchestrator.validate(
@@ -95,8 +100,8 @@ export class SchemaValidator {
 
     try {
       const [existingSchema, incomingSchema] = await Promise.all([
-        orchestrator.build(before, project.externalComposition),
-        orchestrator.build(after, project.externalComposition),
+        orchestrator.build(schemas.before, project.externalComposition),
+        orchestrator.build(schemas.after, project.externalComposition),
       ]);
       if (existingSchema) {
         changes = await this.inspector.diff(buildSchema(existingSchema), buildSchema(incomingSchema), selector);

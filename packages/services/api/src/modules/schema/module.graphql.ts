@@ -9,6 +9,10 @@ export default gql`
     """
     Requires API Token
     """
+    schemaDelete(input: SchemaDeleteInput!): SchemaDeleteResult!
+    """
+    Requires API Token
+    """
     schemaCheck(input: SchemaCheckInput!): SchemaCheckPayload!
     updateSchemaVersionStatus(input: SchemaVersionUpdateInput!): SchemaVersion!
     updateBaseSchema(input: UpdateBaseSchemaInput!): UpdateBaseSchemaResult!
@@ -165,6 +169,26 @@ export default gql`
     Talk to GitHub Application and create a check-run
     """
     github: Boolean
+  }
+
+  input SchemaDeleteInput {
+    serviceName: ID!
+    force: Boolean
+  }
+
+  """
+  @oneOf
+  """
+  type SchemaDeleteResult {
+    ok: DeletedSchema
+    errors: SchemaErrorConnection
+  }
+
+  type DeletedSchema {
+    id: ID!
+    author: String!
+    date: DateTime!
+    serviceName: String
   }
 
   union SchemaCheckPayload = SchemaCheckSuccess | SchemaCheckError | GitHubSchemaCheckSuccess | GitHubSchemaCheckError

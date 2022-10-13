@@ -12,7 +12,7 @@ import {
 import { HiveError } from '../../../../shared/errors';
 import { FederationOrchestrator } from '../orchestrators/federation';
 import { SchemaManager } from '../schema-manager';
-import type { CheckInput, PublishInput } from '../schema-publisher';
+import type { CheckInput, PublishInput, DeleteInput } from '../schema-publisher';
 import { SchemaValidator } from './../schema-validator';
 import { SchemaHelper, ensureCompositeSchemas, serviceExists, swapServices, isAddedOrModified } from '../schema-helper';
 import { temp, Conclusion } from './shared';
@@ -95,16 +95,16 @@ export class CompositeModel {
     const validationResult = await this.schemaValidator.validate({
       orchestrator,
       isInitial,
-      incoming: this.helper.createSchemaObject(incoming),
-      existing: existing ? this.helper.createSchemaObject(existing) : null,
-      before: schemaObjects.before,
-      after: schemaObjects.after,
+      compare: {
+        incoming: this.helper.createSchemaObject(incoming),
+        existing: existing ? this.helper.createSchemaObject(existing) : null,
+      },
+      schemas: { baseSchema, before: schemaObjects.before, after: schemaObjects.after },
       selector: {
         organization: input.organization,
         project: input.project,
         target: input.target,
       },
-      baseSchema,
       acceptBreakingChanges,
       project,
     });
@@ -311,6 +311,74 @@ export class CompositeModel {
             }
           : null,
       isInitial,
+    };
+  }
+
+  async delete({ input, project, currentSchemas }: { project: Project; input: DeleteInput; currentSchemas: Schema[] }) {
+    const serviceName = input.serviceName;
+    const allActiveServices = currentSchemas.filter(isAddedOrModified);
+    const serviceToDelete = allActiveServices.find(s => s.service_name === serviceName);
+
+    if (!serviceToDelete) {
+      return {
+        conclusion: Conclusion.Reject as const,
+        errors: [
+          {
+            message: `Service '${serviceName}' not found.`,
+          },
+        ],
+      };
+    }
+
+    const isForced = input.force === true;
+
+    if (isForced) {
+      return {
+        conclusion: Conclusion.Publish as const,
+        deletedService: serviceToDelete,
+      };
+    }
+
+    const futureServices = allActiveServices.filter(service => service.id !== serviceToDelete.id);
+    const orchestrator = project.type === ProjectType.FEDERATION ? this.federation : this.stitching;
+
+    const baseSchema = this.supportsBaseSchema(project)
+      ? await this.schemaManager.getBaseSchema({
+          target: input.target,
+          project: input.project,
+          organization: input.organization,
+        })
+      : null;
+
+    const schemaObjects = {
+      before: allActiveServices.filter(isAddedOrModified).map(s => this.helper.createSchemaObject(s)),
+      after: futureServices.filter(isAddedOrModified).map(s => this.helper.createSchemaObject(s)),
+    };
+
+    const { isComposable, hasBreakingChanges, errors } = await this.schemaValidator.validate({
+      orchestrator,
+      isInitial: false,
+      compare: false,
+      schemas: {
+        baseSchema,
+        before: schemaObjects.before,
+        after: schemaObjects.after,
+      },
+      selector: {
+        organization: input.organization,
+        project: input.project,
+        target: input.target,
+      },
+      acceptBreakingChanges: isForced,
+      project,
+    });
+
+    return {
+      conclusion: isComposable && !hasBreakingChanges ? (Conclusion.Publish as const) : (Conclusion.Reject as const),
+      isComposable,
+      hasBreakingChanges,
+      errors,
+      deletedService: serviceToDelete,
     };
   }
 }

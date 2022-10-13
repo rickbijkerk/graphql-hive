@@ -376,6 +376,7 @@ export class SchemaManager {
       name: string;
       newName: string;
       projectType: ProjectType;
+      isUsingLegacyRegistryModel: boolean;
     }
   ) {
     this.logger.debug('Updating service name (input=%o)', input);
@@ -383,6 +384,10 @@ export class SchemaManager {
       ...input,
       scope: TargetAccessScope.REGISTRY_WRITE,
     });
+
+    if (!input.isUsingLegacyRegistryModel) {
+      throw new HiveError('This operation is available only for projects using the legacy registry model');
+    }
 
     if (input.projectType !== ProjectType.FEDERATION && input.projectType !== ProjectType.STITCHING) {
       throw new HiveError(`Project type "${input.projectType}" doesn't support service name updates`);

@@ -3,7 +3,7 @@ import type { Schema, Project, Target, SingleSchema } from './../../../../shared
 import { SingleSchemaModel, GraphQLDocumentStringInvalidError } from '../../../../shared/entities';
 import { HiveError } from '../../../../shared/errors';
 import { SingleOrchestrator } from '../orchestrators/single';
-import type { CheckInput, PublishInput } from '../schema-publisher';
+import type { CheckInput, PublishInput, DeleteInput } from '../schema-publisher';
 import { SchemaValidator } from './../schema-validator';
 import { SchemaManager } from '../schema-manager';
 import { ensureSchemaWithSDL, SchemaHelper } from '../schema-helper';
@@ -59,16 +59,20 @@ export class SingleModel {
     const validationResult = await this.schemaValidator.validate({
       orchestrator: this.orchestrator,
       isInitial,
-      incoming: incomingObject,
-      existing: existingObject,
-      before: existingObject ? [existingObject] : [],
-      after: [incomingObject],
+      compare: {
+        incoming: incomingObject,
+        existing: existingObject,
+      },
+      schemas: {
+        baseSchema,
+        before: existingObject ? [existingObject] : [],
+        after: [incomingObject],
+      },
       selector: {
         organization: input.organization,
         project: input.project,
         target: input.target,
       },
-      baseSchema,
       acceptBreakingChanges,
       project,
     });
@@ -214,5 +218,9 @@ export class SingleModel {
           : null,
       isInitial,
     };
+  }
+
+  async delete(_: { project: Project; input: DeleteInput; currentSchemas: Schema[] }) {
+    throw new HiveError('Deleting schemas is not supported for single-schema projects');
   }
 }
