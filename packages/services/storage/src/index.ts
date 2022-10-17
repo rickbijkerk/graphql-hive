@@ -37,6 +37,7 @@ import {
   alerts,
   organizations_billing,
   organization_invitations,
+  version_commit,
 } from './db';
 import { batch } from '@theguild/buddy';
 
@@ -176,6 +177,7 @@ export async function createStorage(connection: string, maximumPoolSize: number)
         ...base,
         metadata: 'metadata' in schema && schema.metadata ? JSON.parse(schema.metadata) : null,
         sdl: schema.sdl!,
+        action: 'N/A',
       };
     }
 
@@ -193,7 +195,7 @@ export async function createStorage(connection: string, maximumPoolSize: number)
       service_name: schema.service_name!,
       service_url: schema.service_url ?? null,
       metadata: 'metadata' in schema && schema.metadata ? JSON.parse(schema.metadata) : null,
-      action: 'ADD',
+      action: schema.action,
     };
   }
 
@@ -1340,41 +1342,55 @@ export async function createStorage(connection: string, maximumPoolSize: number)
         hasMore,
       };
     },
-    async insertSchema({ schema, commit, author, project, target, service = null, url = null, metadata, action }) {
-      const result = await pool.one<commits>(sql`
-        INSERT INTO public.commits
-          (
-            author,
-            service_name,
-            service_url,
-            commit,
-            sdl,
-            project_id,
-            target_id,
-            metadata,
-            action
-          )
-        VALUES
-          (
-            ${author},
-            ${service}::text,
-            ${url}::text,
-            ${commit}::text,
-            ${schema}::text,
-            ${project},
-            ${target},
-            ${metadata},
-            ${action}
-          )
-        RETURNING *
-      `);
+    deleteSchema({ serviceName, isComposable, baseSchema, author, commit: userCommit, project, target }) {
+      return pool.transaction(async t => {
+        const currentCommits = await t.query<
+          Pick<version_commit, 'commit_id' | 'version_id'> & Pick<commits, 'action' | 'service_name'>
+        >(sql`
+            SELECT vc.commit_id, vc.version_id, c.action, c.service_name
+            FROM public.version_commit as vc
+            INNER JOIN public.commits as c ON (c.id = vc.commit_id)
+            WHERE vc.version_id = (
+              SELECT id FROM public.versions
+              WHERE target_id = ${target}
+              ORDER BY created_at DESC
+              LIMIT 1
+            )
+        `);
 
-      return transformSchema(result);
-    },
-    async createVersion(input) {
-      const newVersion = await pool.transaction(async trx => {
+        const nonDeletedCommits = currentCommits.rows.filter(r => r.action !== 'DELETE');
+        const commitToDelete = nonDeletedCommits.find(r => r.service_name === serviceName);
+
+        if (!commitToDelete) {
+          throw new Error(`No commit found for service ${serviceName}`);
+        }
+
+        const action = 'DELETE';
+
+        const commit = await t.one<commits>(sql`
+          INSERT INTO public.commits
+            (
+              author,
+              commit,
+              service_name,
+              project_id,
+              target_id,
+              action
+            )
+            VALUES
+            (
+              ${author},
+              ${userCommit}::text,
+              ${serviceName},
+              ${project},
+              ${target},
+              ${action}
+            )
+            RETURNING *;
+        `);
+
         // creates a new version
-        const newVersion = await trx.one<Pick<versions, 'id' | 'created_at'>>(sql`
+        const newVersion = await t.one<Pick<versions, 'id' | 'created_at'>>(sql`
           INSERT INTO public.versions
             (
               is_composable,
@@ -1384,26 +1400,155 @@ export async function createStorage(connection: string, maximumPoolSize: number)
             )
           VALUES
             (
-              ${input.isComposable},
-              ${input.target},
-              ${input.commit},
-              ${input.base_schema}
+              ${isComposable},
+              ${target},
+              ${commit.id},
+              ${baseSchema ?? null}
             )
           RETURNING
             id,
             created_at
         `);
 
-        await Promise.all(
-          input.commits.map(async cid => {
-            await trx.query(sql`
-              INSERT INTO public.version_commit
-                (version_id, commit_id)
-              VALUES
-              (${newVersion.id}, ${cid})
-            `);
-          })
-        );
+        const commitsUsedByNewVersion =
+          nonDeletedCommits.length > 0
+            ? nonDeletedCommits
+                // filter out the commit that is being modified
+                .filter(r => r.service_name !== commit.service_name)
+                .map(r => r.commit_id)
+                // append the new commit
+                .concat(commit.id)
+            : // seems like this is the first or only commit
+              [commit.id];
+
+        await t.query(sql`
+          INSERT INTO public.version_commit
+          (
+            version_id,
+            commit_id
+          ) VALUES (
+            ${sql.join(
+              commitsUsedByNewVersion.map(
+                commitId => sql`
+                ${newVersion.id},
+                ${commitId}`
+              ),
+              sql`), (`
+            )});
+        `);
+
+        return {
+          id: newVersion.id,
+          date: newVersion.created_at as any,
+          isComposable,
+          commit: userCommit,
+          base_schema: baseSchema,
+        };
+      });
+    },
+    async createVersion(input) {
+      const newVersion = await pool.transaction(async t => {
+        const currentCommits = await t.query<
+          Pick<version_commit, 'commit_id' | 'version_id'> & Pick<commits, 'action' | 'service_name'>
+        >(sql`
+            SELECT vc.commit_id, vc.version_id, c.action, c.service_name
+            FROM public.version_commit as vc
+            INNER JOIN public.commits as c ON (c.id = vc.commit_id)
+            WHERE vc.version_id = (
+              SELECT id FROM public.versions
+              WHERE target_id = ${input.target}
+              ORDER BY created_at DESC
+              LIMIT 1
+            )
+        `);
+
+        let action: 'MODIFY' | 'ADD';
+
+        if (input.schema.serviceName) {
+          action = currentCommits.rows.filter(r => r.action).some(r => r.service_name === input.schema.serviceName)
+            ? 'MODIFY'
+            : 'ADD';
+        } else {
+          action = currentCommits.rowCount > 0 ? 'MODIFY' : 'ADD';
+        }
+
+        const nonDeletedCommits = currentCommits.rows.filter(r => r.action !== 'DELETE');
+
+        const commit = await t.one<commits>(sql`
+          INSERT INTO public.commits
+            (
+              author,
+              commit,
+              service_name,
+              service_url,
+              sdl,
+              project_id,
+              target_id,
+              metadata,
+              action
+            )
+            VALUES
+          (
+            ${input.schema.author},
+            ${input.schema.commit}::text,
+            ${input.schema.serviceName ?? null},
+            ${input.schema.serviceUrl ?? null},
+            ${input.schema.sdl},
+            ${input.project},
+            ${input.target},
+            ${input.schema.metadata ?? null},
+            ${action}
+          )
+          RETURNING *;
+        `);
+
+        // creates a new version
+        const newVersion = await t.one<Pick<versions, 'id' | 'created_at'>>(sql`
+          INSERT INTO public.versions
+            (
+              is_composable,
+              target_id,
+              commit_id,
+              base_schema
+            )
+            VALUES
+              (
+                ${input.isComposable},
+                ${input.target},
+                ${commit.id},
+                ${input.schema.base_schema}
+              )
+          RETURNING
+            id,
+            created_at
+        `);
+
+        const commitsUsedByNewVersion =
+          nonDeletedCommits.length > 0
+            ? nonDeletedCommits
+                // filter out the commit that is being modified
+                .filter(r => r.service_name !== commit.service_name)
+                .map(r => r.commit_id)
+                // append the new commit
+                .concat(commit.id)
+            : // seems like this is the first or only commit
+              [commit.id];
+
+        await t.query<{}>(sql`
+          INSERT INTO public.version_commit
+          (
+            version_id,
+            commit_id
+          ) VALUES (
+            ${sql.join(
+              commitsUsedByNewVersion.map(
+                commitId => sql`
+                ${newVersion.id},
+                ${commitId}`
+              ),
+              sql`), (`
+            )});
+        `);
 
         return newVersion;
       });
@@ -1411,10 +1556,9 @@ export async function createStorage(connection: string, maximumPoolSize: number)
       return {
         id: newVersion.id,
         date: newVersion.created_at as any,
-        url: input.url,
         isComposable: input.isComposable,
-        commit: input.commit,
-        base_schema: input.base_schema,
+        commit: input.schema.commit,
+        base_schema: input.schema.base_schema,
       };
     },
 

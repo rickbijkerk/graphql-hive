@@ -31,7 +31,7 @@ import { TargetManager } from '../target/providers/target-manager';
 import { AuthManager } from '../auth/providers/auth-manager';
 import { parseResolveInfo } from 'graphql-parse-resolve-info';
 import { z } from 'zod';
-import { SchemaHelper, ensureSchemasWithSDL, ensureSchemaWithSDL, isAddedOrModified } from './providers/schema-helper';
+import { SchemaHelper, ensureSchemasWithSDL, onlySchemasWithSDL } from './providers/schema-helper';
 import type { WithSchemaCoordinatesUsage, WithGraphQLParentInfo } from '../../shared/mappers';
 import { createPeriod, parseDateRangeInput } from '../../shared/helpers';
 import { OperationsManager } from '../operations/providers/operations-manager';
@@ -332,12 +332,12 @@ export const resolvers: SchemaModule.Resolvers = {
 
       return Promise.all([
         orchestrator.build(
-          ensureSchemasWithSDL(schemasBefore).map(s => helper.createSchemaObject(s)),
-          project.externalComposition
+          onlySchemasWithSDL(schemasBefore).map(s => helper.createSchemaObject(s)),
+          project
         ),
         orchestrator.build(
-          ensureSchemasWithSDL(schemasAfter).map(s => helper.createSchemaObject(s)),
-          project.externalComposition
+          onlySchemasWithSDL(schemasAfter).map(s => helper.createSchemaObject(s)),
+          project
         ),
       ]).catch(reason => {
         if (reason instanceof SchemaBuildError) {
@@ -386,13 +386,13 @@ export const resolvers: SchemaModule.Resolvers = {
       return Promise.all([
         schemasBefore.length
           ? orchestrator.build(
-              ensureSchemasWithSDL(schemasBefore).map(s => helper.createSchemaObject(s)),
-              project.externalComposition
+              onlySchemasWithSDL(schemasBefore).map(s => helper.createSchemaObject(s)),
+              project
             )
           : null,
         orchestrator.build(
-          ensureSchemasWithSDL(schemasAfter).map(s => helper.createSchemaObject(s)),
-          project.externalComposition
+          onlySchemasWithSDL(schemasAfter).map(s => helper.createSchemaObject(s)),
+          project
         ),
       ]).catch(reason => {
         if (reason instanceof SchemaBuildError) {
@@ -481,25 +481,21 @@ export const resolvers: SchemaModule.Resolvers = {
     valid(version) {
       return version.isComposable;
     },
-    async commit(version, _, { injector }) {
-      return ensureSchemaWithSDL(
-        await injector.get(SchemaManager).getCommit({
-          commit: version.commit,
-          organization: version.organization,
-          project: version.project,
-          target: version.target,
-        })
-      );
+    commit(version, _, { injector }) {
+      return injector.get(SchemaManager).getCommit({
+        commit: version.commit,
+        organization: version.organization,
+        project: version.project,
+        target: version.target,
+      });
     },
-    async schemas(version, _, { injector }) {
-      return ensureSchemasWithSDL(
-        await injector.get(SchemaManager).getCommits({
-          version: version.id,
-          organization: version.organization,
-          project: version.project,
-          target: version.target,
-        })
-      );
+    schemas(version, _, { injector }) {
+      return injector.get(SchemaManager).getCommits({
+        version: version.id,
+        organization: version.organization,
+        project: version.project,
+        target: version.target,
+      });
     },
     async supergraph(version, _, { injector }) {
       const project = await injector.get(ProjectManager).getProject({
@@ -526,7 +522,7 @@ export const resolvers: SchemaModule.Resolvers = {
 
       return orchestrator.supergraph(
         schemas.map(s => helper.createSchemaObject(s)),
-        project.externalComposition
+        project
       );
     },
     async sdl(version, _, { injector }) {
@@ -551,7 +547,7 @@ export const resolvers: SchemaModule.Resolvers = {
       return (
         await orchestrator.build(
           schemas.map(s => helper.createSchemaObject(s)),
-          project.externalComposition
+          project
         )
       ).raw;
     },
@@ -579,7 +575,7 @@ export const resolvers: SchemaModule.Resolvers = {
 
       const schema = await orchestrator.build(
         schemas.map(s => helper.createSchemaObject(s)),
-        project.externalComposition
+        project
       );
 
       return {
@@ -595,12 +591,25 @@ export const resolvers: SchemaModule.Resolvers = {
       };
     },
   },
-  Schema: {
-    source: schema => schema.sdl,
-    url: schema => (isAddedOrModified(schema) ? schema.service_url : null),
-    serviceUrl: schema => (isAddedOrModified(schema) ? schema.service_url : null),
-    service: schema => (isAddedOrModified(schema) ? schema.service_name : null),
-    serviceName: schema => (isAddedOrModified(schema) ? schema.service_name : null),
+  SingleSchema: {
+    __isTypeOf(schema) {
+      return schema.action == 'N/A';
+    },
+  },
+  AddedCompositeSchema: {
+    __isTypeOf(schema) {
+      return schema.action == 'ADD';
+    },
+  },
+  ModifiedCompositeSchema: {
+    __isTypeOf(schema) {
+      return schema.action === 'MODIFY';
+    },
+  },
+  DeletedCompositeSchema: {
+    __isTypeOf(schema) {
+      return schema.action === 'DELETE';
+    },
   },
   SchemaCompareError: {
     __isTypeOf(error) {

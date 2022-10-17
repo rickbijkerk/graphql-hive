@@ -20,6 +20,7 @@ export const SingleSchemaModel = z
     target: z.string(),
     sdl: z.string(),
     metadata: z.any().nullish(),
+    action: z.literal('N/A'),
   })
   .required();
 
@@ -264,10 +265,9 @@ export interface TargetSettings {
 }
 
 export interface Orchestrator {
-  ensureConfig(config: any): void | never;
-  validate(schemas: readonly SchemaObject[], config: any): Promise<SchemaError[]>;
-  build(schemas: readonly SchemaObject[], config: any): Promise<SchemaObject>;
-  supergraph(schemas: readonly SchemaObject[], config: any): Promise<string | null>;
+  validate(schemas: readonly SchemaObject[], config: Project): Promise<SchemaError[]>;
+  build(schemas: readonly SchemaObject[], config: Project): Promise<SchemaObject>;
+  supergraph(schemas: readonly SchemaObject[], config: Project): Promise<string | null>;
 }
 
 export interface ActivityObject {

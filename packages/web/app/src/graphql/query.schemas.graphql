@@ -3,10 +3,13 @@ query schemas($selector: TargetSelectorInput!) {
     ...TargetFields
     latestSchemaVersion {
       id
-      valid
+      isComposable
       schemas {
         nodes {
-          ...SchemaFields
+          ...AddedCompositeSchemaFields
+          ...ModifiedCompositeSchemaFields
+          ...DeletedCompositeSchemaFields
+          ...SingleSchemaFields
         }
       }
     }

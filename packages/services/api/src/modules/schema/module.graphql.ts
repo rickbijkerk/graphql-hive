@@ -131,18 +131,43 @@ export default gql`
     total: Int!
   }
 
-  type Schema {
+  union Schema = SingleSchema | AddedCompositeSchema | ModifiedCompositeSchema | DeletedCompositeSchema
+
+  type SingleSchema {
     id: ID!
     author: String!
-    source: String! @deprecated(reason: "Use 'sdl' instead")
     sdl: String!
     date: DateTime!
     commit: ID!
-    url: String @deprecated(reason: "Use 'serviceUrl' instead")
-    serviceUrl: String
-    service: String @deprecated(reason: "Use 'serviceName' instead")
-    serviceName: String
     metadata: String
+  }
+
+  type AddedCompositeSchema {
+    id: ID!
+    author: String!
+    sdl: String!
+    date: DateTime!
+    commit: ID!
+    serviceName: String!
+    serviceUrl: String
+    metadata: String
+  }
+
+  type ModifiedCompositeSchema {
+    id: ID!
+    author: String!
+    sdl: String!
+    date: DateTime!
+    commit: ID!
+    serviceName: String!
+    serviceUrl: String
+    metadata: String
+  }
+
+  type DeletedCompositeSchema {
+    id: ID!
+    date: DateTime!
+    serviceName: String!
   }
 
   union SchemaPublishPayload =

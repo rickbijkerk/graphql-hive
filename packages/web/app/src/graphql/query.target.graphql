@@ -11,10 +11,13 @@ query target($organizationId: ID!, $targetId: ID!, $projectId: ID!) {
     ...TargetFields
     latestSchemaVersion {
       id
-      valid
+      isComposable
       schemas {
         nodes {
-          ...SchemaFields
+          ...AddedCompositeSchemaFields
+          ...ModifiedCompositeSchemaFields
+          ...DeletedCompositeSchemaFields
+          ...SingleSchemaFields
         }
       }
     }

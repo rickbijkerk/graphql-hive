@@ -268,10 +268,7 @@ export class CompositeModel {
           ? {
               schemas: schemas.after.filter(isAddedOrModified),
               supergraph: this.supportsSupergraph(project)
-                ? await orchestrator.supergraph(
-                    schemaObjects.after,
-                    project.externalComposition.enabled ? project.externalComposition : null
-                  )
+                ? await orchestrator.supergraph(schemaObjects.after, project)
                 : null,
             }
           : null,
@@ -303,10 +300,7 @@ export class CompositeModel {
           ? {
               schemas: schemas.after.filter(isAddedOrModified),
               supergraph: this.supportsSupergraph(project)
-                ? await orchestrator.supergraph(
-                    schemaObjects.after,
-                    project.externalComposition.enabled ? project.externalComposition : null
-                  )
+                ? await orchestrator.supergraph(schemaObjects.after, project)
                 : null,
             }
           : null,
@@ -331,13 +325,6 @@ export class CompositeModel {
     }
 
     const isForced = input.force === true;
-
-    if (isForced) {
-      return {
-        conclusion: Conclusion.Publish as const,
-        deletedService: serviceToDelete,
-      };
-    }
 
     const futureServices = allActiveServices.filter(service => service.id !== serviceToDelete.id);
     const orchestrator = project.type === ProjectType.FEDERATION ? this.federation : this.stitching;
@@ -374,11 +361,15 @@ export class CompositeModel {
     });
 
     return {
-      conclusion: isComposable && !hasBreakingChanges ? (Conclusion.Publish as const) : (Conclusion.Reject as const),
+      conclusion:
+        isForced || (isComposable && !hasBreakingChanges)
+          ? (Conclusion.Publish as const)
+          : (Conclusion.Reject as const),
       isComposable,
       hasBreakingChanges,
       errors,
-      deletedService: serviceToDelete,
+      service: serviceToDelete,
+      baseSchema,
     };
   }
 }

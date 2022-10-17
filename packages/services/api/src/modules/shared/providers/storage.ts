@@ -192,25 +192,27 @@ export interface Storage {
   updateSchemaUrlOfVersion(_: TargetSelector & { version: string; url?: string | null; commit: string }): Promise<void>;
   updateServiceName(_: TargetSelector & { commit: string; name: string }): Promise<void>;
 
-  insertSchema(
+  deleteSchema(
     _: {
-      schema: string;
-      commit: string;
+      isComposable: boolean;
+      serviceName: string;
+      baseSchema: string | null;
       author: string;
-      service?: string | null;
-      url?: string | null;
-      metadata: string | null;
-      action: 'ADD' | 'MODIFY' | 'N/A';
+      commit: string;
     } & TargetSelector
-  ): Promise<Schema | never>;
-
+  ): Promise<SchemaVersion>;
   createVersion(
     _: {
       isComposable: boolean;
-      url?: string | null;
-      commit: string;
-      commits: string[];
-      base_schema: string | null;
+      schema: {
+        sdl: string;
+        commit: string;
+        author: string;
+        serviceName?: string | null;
+        serviceUrl?: string | null;
+        metadata: string | null;
+        base_schema: string | null;
+      };
     } & TargetSelector
   ): Promise<SchemaVersion | never>;
 

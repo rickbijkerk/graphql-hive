@@ -16,6 +16,7 @@ import { ProjectAccessScope } from '../../auth/providers/project-access';
 import { CryptoProvider } from '../../shared/providers/crypto';
 import { z } from 'zod';
 import { ensureCompositeSchemas } from './schema-helper';
+import { ProjectManager } from '../../project/providers/project-manager';
 
 const ENABLE_EXTERNAL_COMPOSITION_SCHEMA = z.object({
   endpoint: z.string().url().nonempty(),
@@ -45,6 +46,7 @@ export class SchemaManager {
   constructor(
     logger: Logger,
     private authManager: AuthManager,
+    private projectManager: ProjectManager,
     private storage: Storage,
     private singleOrchestrator: SingleOrchestrator,
     private stitchingOrchestrator: StitchingOrchestrator,
@@ -283,34 +285,51 @@ export class SchemaManager {
       scope: TargetAccessScope.REGISTRY_WRITE,
     });
 
-    if (service) {
+    const { isUsingLegacyRegistryModel } = await this.projectManager.getProject({
+      organization,
+      project,
+    });
+
+    // In case of the legacy registry model, we need to ensure that the service name is lowercased
+    if (isUsingLegacyRegistryModel && service) {
       service = service.toLowerCase();
     }
 
-    // insert new schema
-    const insertedSchema = await this.insertSchema({
-      organization,
-      project,
-      target,
-      schema,
-      service,
-      commit,
-      author,
-      url,
-      metadata,
-      action,
-    });
-
-    // finally create a version
     return this.storage.createVersion({
       isComposable,
       organization,
       project,
       target,
-      commit: insertedSchema.id,
-      commits: commits.concat(insertedSchema.id),
-      url,
-      base_schema: input.base_schema,
+      schema: {
+        sdl: schema,
+        serviceName: service,
+        commit,
+        author,
+        serviceUrl: url,
+        metadata,
+        base_schema: input.base_schema,
+      },
+    });
+  }
+
+  async deleteSchema(
+    input: {
+      serviceName: string;
+      isComposable: boolean;
+      baseSchema: string | null;
+    } & TargetSelector
+  ) {
+    await this.authManager.ensureTargetAccess({
+      target: input.target,
+      project: input.project,
+      organization: input.organization,
+      scope: TargetAccessScope.REGISTRY_WRITE,
+    });
+
+    return this.storage.deleteSchema({
+      ...input,
+      author: 'unknown',
+      commit: 'unknown',
     });
   }
 
@@ -334,24 +353,24 @@ export class SchemaManager {
     }
   }
 
-  private async insertSchema(
-    input: {
-      schema: string;
-      commit: string;
-      author: string;
-      service?: string | null;
-      url?: string | null;
-      metadata: string | null;
-      action: 'ADD' | 'MODIFY' | 'N/A';
-    } & TargetSelector
-  ) {
-    this.logger.info('Inserting schema (input=%o)', lodash.omit(input, ['schema']));
-    await this.authManager.ensureTargetAccess({
-      ...input,
-      scope: TargetAccessScope.REGISTRY_WRITE,
-    });
-    return this.storage.insertSchema(input);
-  }
+  // private async insertSchema(
+  //   input: {
+  //     schema: string;
+  //     commit: string;
+  //     author: string;
+  //     service?: string | null;
+  //     url?: string | null;
+  //     metadata: string | null;
+  //     action: 'ADD' | 'MODIFY' | 'N/A';
+  //   } & TargetSelector
+  // ) {
+  //   this.logger.info('Inserting schema (input=%o)', lodash.omit(input, ['schema']));
+  //   await this.authManager.ensureTargetAccess({
+  //     ...input,
+  //     scope: TargetAccessScope.REGISTRY_WRITE,
+  //   });
+  //   return this.storage.insertSchema(input);
+  // }
 
   async getBaseSchema(selector: TargetSelector) {
     this.logger.debug('Fetching base schema (selector=%o)', selector);

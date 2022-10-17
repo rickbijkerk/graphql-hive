@@ -18,7 +18,12 @@ import { TargetLayout } from '@/components/layouts';
 import { MarkAsValid } from '@/components/target/history/MarkAsValid';
 import { Button, DataWrapper, GraphQLBlock, noSchema, Title } from '@/components/v2';
 import { RefreshIcon } from '@/components/v2/icon';
-import { SchemaFieldsFragment } from '@/gql/graphql';
+import {
+  SingleSchemaFieldsFragment,
+  AddedCompositeSchemaFieldsFragment,
+  ModifiedCompositeSchemaFieldsFragment,
+  DeletedCompositeSchemaFieldsFragment,
+} from '@/gql/graphql';
 import {
   LatestSchemaDocument,
   OrganizationFieldsFragment,
@@ -39,7 +44,10 @@ const SchemaServiceName_UpdateSchemaServiceName = gql(/* GraphQL */ `
             valid
             schemas {
               nodes {
-                ...SchemaFields
+                ...AddedCompositeSchemaFields
+                ...ModifiedCompositeSchemaFields
+                ...DeletedCompositeSchemaFields
+                ...SingleSchemaFields
               }
             }
           }
@@ -60,7 +68,7 @@ const SchemaServiceName = ({
   version,
 }: {
   version: string;
-  schema: SchemaFieldsFragment;
+  schema: AddedCompositeSchemaFieldsFragment | ModifiedCompositeSchemaFieldsFragment;
   target: TargetFieldsFragment;
   project: ProjectFieldsFragment;
   organization: OrganizationFieldsFragment;
@@ -74,7 +82,7 @@ const SchemaServiceName = ({
 
   const submit = useCallback(
     (newName: string) => {
-      if (schema.service === newName) {
+      if (schema.serviceName === newName) {
         return;
       }
 
@@ -88,25 +96,48 @@ const SchemaServiceName = ({
           project: project.cleanId,
           target: target.cleanId,
           version,
-          name: schema.service!,
+          name: schema.serviceName!,
           newName,
         },
       });
     },
-    [mutate, organization.cleanId, project.cleanId, schema.service, target.cleanId, version]
+    [mutate, organization.cleanId, project.cleanId, schema.serviceName, target.cleanId, version]
   );
 
   if ((project.type !== ProjectType.Federation && project.type !== ProjectType.Stitching) || !hasAccess) {
-    return <>{schema.service}</>;
+    return <>{schema.serviceName}</>;
   }
 
   return (
-    <Editable defaultValue={schema.service ?? ''} isDisabled={mutation.fetching} onSubmit={submit}>
+    <Editable defaultValue={schema.serviceName ?? ''} isDisabled={mutation.fetching} onSubmit={submit}>
       <EditablePreview />
       <EditableInput />
     </Editable>
   );
 };
+
+function isSchemaWithServiceName(
+  schema:
+    | SingleSchemaFieldsFragment
+    | AddedCompositeSchemaFieldsFragment
+    | ModifiedCompositeSchemaFieldsFragment
+    | DeletedCompositeSchemaFieldsFragment
+): schema is
+  | AddedCompositeSchemaFieldsFragment
+  | ModifiedCompositeSchemaFieldsFragment
+  | DeletedCompositeSchemaFieldsFragment {
+  return 'serviceName' in schema;
+}
+
+function isAddedOrModifiedSchema(
+  schema:
+    | SingleSchemaFieldsFragment
+    | AddedCompositeSchemaFieldsFragment
+    | ModifiedCompositeSchemaFieldsFragment
+    | DeletedCompositeSchemaFieldsFragment
+): schema is AddedCompositeSchemaFieldsFragment | ModifiedCompositeSchemaFieldsFragment {
+  return isSchemaWithServiceName(schema) && 'sdl' in schema;
+}
 
 const Schemas = ({
   organization,
@@ -119,20 +150,26 @@ const Schemas = ({
   organization: OrganizationFieldsFragment;
   project: ProjectFieldsFragment;
   target: TargetFieldsFragment;
-  schemas: SchemaFieldsFragment[];
+  schemas: (
+    | SingleSchemaFieldsFragment
+    | AddedCompositeSchemaFieldsFragment
+    | ModifiedCompositeSchemaFieldsFragment
+    | DeletedCompositeSchemaFieldsFragment
+  )[];
   version: string;
   filterService?: string;
 }): ReactElement => {
   if (project.type === ProjectType.Single) {
-    return <GraphQLBlock className="mb-6" sdl={schemas[0].source} url={schemas[0]?.url ?? ''} />;
+    return <GraphQLBlock className="mb-6" sdl={(schemas[0] as SingleSchemaFieldsFragment).sdl} url={''} />;
   }
 
   return (
     <div className="flex flex-col gap-8">
       {schemas
+        .filter(isAddedOrModifiedSchema)
         .filter(schema => {
-          if (filterService && schema.service) {
-            return schema.service.toLowerCase().includes(filterService.toLowerCase());
+          if (filterService && schema.serviceName) {
+            return schema.serviceName.toLowerCase().includes(filterService.toLowerCase());
           }
 
           return true;
@@ -140,8 +177,8 @@ const Schemas = ({
         .map(schema => (
           <GraphQLBlock
             key={schema.id}
-            sdl={schema.source}
-            url={schema.url ?? ''}
+            sdl={schema.sdl}
+            url={schema.serviceUrl ?? ''}
             title={
               <SchemaServiceName
                 version={version}

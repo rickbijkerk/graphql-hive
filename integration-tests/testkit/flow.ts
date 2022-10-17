@@ -5,6 +5,7 @@ import type {
   CreateOrganizationInput,
   UpdateOrganizationNameInput,
   SchemaPublishInput,
+  SchemaDeleteInput,
   CreateProjectInput,
   UpdateProjectNameInput,
   CreateTokenInput,
@@ -421,6 +422,31 @@ export function publishSchema(input: SchemaPublishInput, token: string, authHead
   });
 }
 
+export function deleteSchema(input: SchemaDeleteInput, token: string, authHeader?: 'x-api-token' | 'authorization') {
+  return execute({
+    document: gql(/* GraphQL */ `
+      mutation schemaDelete($input: SchemaDeleteInput!) {
+        schemaDelete(input: $input) {
+          ok {
+            __typename
+          }
+          errors {
+            nodes {
+              message
+            }
+            total
+          }
+        }
+      }
+    `),
+    token,
+    variables: {
+      input,
+    },
+    legacyAuthorizationMode: authHeader === 'x-api-token',
+  });
+}
+
 export function checkSchema(input: SchemaCheckInput, token: string) {
   return execute({
     document: gql(/* GraphQL */ `
@@ -592,9 +618,25 @@ export function fetchLatestSchema(token: string) {
           baseSchema
           schemas {
             nodes {
-              source
-              commit
-              url
+              ... on SingleSchema {
+                commit
+                sdl
+              }
+              ... on AddedCompositeSchema {
+                commit
+                serviceName
+                serviceUrl
+                sdl
+              }
+              ... on ModifiedCompositeSchema {
+                commit
+                serviceName
+                serviceUrl
+                sdl
+              }
+              ... on DeletedCompositeSchema {
+                serviceName
+              }
             }
             total
           }
@@ -615,8 +657,25 @@ export function fetchLatestValidSchema(token: string) {
           baseSchema
           schemas {
             nodes {
-              source
-              commit
+              ... on SingleSchema {
+                commit
+                sdl
+              }
+              ... on AddedCompositeSchema {
+                commit
+                serviceName
+                serviceUrl
+                sdl
+              }
+              ... on ModifiedCompositeSchema {
+                commit
+                serviceName
+                serviceUrl
+                sdl
+              }
+              ... on DeletedCompositeSchema {
+                serviceName
+              }
             }
             total
           }
@@ -638,14 +697,48 @@ export function fetchVersions(selector: SchemaVersionsInput, limit: number, toke
             valid
             date
             commit {
-              source
-              commit
+              ... on SingleSchema {
+                commit
+                sdl
+              }
+              ... on AddedCompositeSchema {
+                commit
+                serviceName
+                serviceUrl
+                sdl
+              }
+              ... on ModifiedCompositeSchema {
+                commit
+                serviceName
+                serviceUrl
+                sdl
+              }
+              ... on DeletedCompositeSchema {
+                serviceName
+              }
             }
             baseSchema
             schemas {
               nodes {
-                source
-                commit
+                ... on SingleSchema {
+                  commit
+                  sdl
+                }
+                ... on AddedCompositeSchema {
+                  commit
+                  serviceName
+                  serviceUrl
+                  sdl
+                }
+                ... on ModifiedCompositeSchema {
+                  commit
+                  serviceName
+                  serviceUrl
+                  sdl
+                }
+                ... on DeletedCompositeSchema {
+                  serviceName
+                }
               }
             }
           }
@@ -695,8 +788,22 @@ export function updateSchemaVersionStatus(input: SchemaVersionUpdateInput, token
           date
           valid
           commit {
-            id
-            commit
+            ... on SingleSchema {
+              id
+              commit
+              sdl
+            }
+            ... on AddedCompositeSchema {
+              id
+              commit
+            }
+            ... on ModifiedCompositeSchema {
+              id
+              commit
+            }
+            ... on DeletedCompositeSchema {
+              id
+            }
           }
         }
       }

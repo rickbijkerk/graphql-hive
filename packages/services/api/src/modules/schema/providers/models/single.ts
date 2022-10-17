@@ -51,6 +51,7 @@ export class SingleModel {
       target: input.target,
       date: Date.now(),
       sdl: input.sdl,
+      action: 'N/A',
     };
     const incomingObject = this.helper.createSchemaObject(incoming);
 
@@ -128,6 +129,7 @@ export class SingleModel {
       target: target.id,
       date: Date.now(),
       metadata: this.helper.ensureJSONMetadata(input.metadata),
+      action: 'N/A',
     };
 
     const schema = {

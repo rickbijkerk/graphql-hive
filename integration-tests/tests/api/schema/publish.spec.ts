@@ -271,11 +271,10 @@ test('base schema should not affect the output schema persisted in db', async ()
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
   expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc234');
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
-    'type Query { ping: String @auth pong: String }'
-  );
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).not.toMatch('directive');
+  const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+  expect('commit' in firstSchema && firstSchema.commit).toBe('abc234');
+  expect('sdl' in firstSchema && firstSchema.commit).toMatch('type Query { ping: String @auth pong: String }');
+  expect('sdl' in firstSchema && firstSchema.sdl).not.toMatch('directive');
   expect(latestResult.body.data!.latestVersion.baseSchema).toMatch('directive @auth on OBJECT | FIELD_DEFINITION');
 });
 
@@ -349,8 +348,9 @@ test('directives should not be removed (federation)', async () => {
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
   expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+  const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+  expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+  expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
     `type Query { me: User } type User @key(fields: "id") { id: ID! name: String }`
   );
 });
@@ -439,9 +439,10 @@ test('should allow to update the URL of a Federated service without changing the
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
   expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc1234');
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].url).toBe('http://localhost:3000/test/graphql');
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+  const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+  expect('commit' in firstSchema && firstSchema.commit).toBe('abc1234');
+  expect('serviceUrl' in firstSchema && firstSchema.serviceUrl).toBe('http://localhost:3000/test/graphql');
+  expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
     `type Query { me: User } type User @key(fields: "id") { id: ID! name: String }`
   );
 });
@@ -514,8 +515,9 @@ test('should allow to update the URL of a Federated service while also changing 
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
   expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+  const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+  expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+  expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
     `type Query { me: User } type User @key(fields: "id") { id: ID! name: String }`
   );
 
@@ -605,8 +607,9 @@ test('directives should not be removed (stitching)', async () => {
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
   expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+  const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+  expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+  expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
     `type Query { me: User } type User @key(selectionSet: "{ id }") { id: ID! name: String }`
   );
 });
@@ -681,8 +684,9 @@ test('directives should not be removed (single)', async () => {
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
   expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-  expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+  const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+  expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+  expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
     `directive @auth on FIELD_DEFINITION type Query { me: User @auth } type User { id: ID! name: String }`
   );
 });
@@ -1471,7 +1475,8 @@ test('accept breaking changes if schema is composable', async () => {
   const latestValid = await fetchLatestValidSchema(writeToken);
 
   expect(composableButBreakingResult.body.data!.schemaPublish.__typename).toBe('SchemaPublishSuccess');
-  expect(latestValid.body.data?.latestValidVersion.schemas.nodes[0].commit).toBe('composable-but-breaking');
+  const firstSchema = latestValid.body.data?.latestValidVersion.schemas.nodes[0];
+  expect(firstSchema && 'commit' in firstSchema && firstSchema.commit).toBe('composable-but-breaking');
 });
 
 describe('legacy registry mode', () => {
@@ -1730,11 +1735,10 @@ describe('legacy registry mode', () => {
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
     expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc234');
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
-      'type Query { ping: String @auth pong: String }'
-    );
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).not.toMatch('directive');
+    const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+    expect('commit' in firstSchema && firstSchema.commit).toBe('abc234');
+    expect('sdl' in firstSchema && firstSchema.sdl).toMatch('type Query { ping: String @auth pong: String }');
+    expect('sdl' in firstSchema && firstSchema.sdl).not.toMatch('directive');
     expect(latestResult.body.data!.latestVersion.baseSchema).toMatch('directive @auth on OBJECT | FIELD_DEFINITION');
   });
 
@@ -1809,8 +1813,9 @@ describe('legacy registry mode', () => {
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
     expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+    const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+    expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+    expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
       `type Query { me: User } type User @key(fields: "id") { id: ID! name: String }`
     );
   });
@@ -1900,9 +1905,10 @@ describe('legacy registry mode', () => {
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
     expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc1234');
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].url).toBe('http://localhost:3000/test/graphql');
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+    const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+    expect('commit' in firstSchema && firstSchema.commit).toBe('abc1234');
+    expect('serviceUrl' in firstSchema && firstSchema.serviceUrl).toBe('http://localhost:3000/test/graphql');
+    expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
       `type Query { me: User } type User @key(fields: "id") { id: ID! name: String }`
     );
   });
@@ -1976,8 +1982,9 @@ describe('legacy registry mode', () => {
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
     expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+    const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+    expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+    expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
       `type Query { me: User } type User @key(fields: "id") { id: ID! name: String }`
     );
 
@@ -2068,8 +2075,9 @@ describe('legacy registry mode', () => {
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
     expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+    const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+    expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+    expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
       `type Query { me: User } type User @key(selectionSet: "{ id }") { id: ID! name: String }`
     );
   });
@@ -2145,8 +2153,9 @@ describe('legacy registry mode', () => {
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
     expect(latestResult.body.data!.latestVersion.schemas.total).toBe(1);
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].commit).toBe('abc123');
-    expect(latestResult.body.data!.latestVersion.schemas.nodes[0].source).toMatch(
+    const firstSchema = latestResult.body.data!.latestVersion.schemas.nodes[0];
+    expect('commit' in firstSchema && firstSchema.commit).toBe('abc123');
+    expect('sdl' in firstSchema && firstSchema.sdl).toMatch(
       `directive @auth on FIELD_DEFINITION type Query { me: User @auth } type User { id: ID! name: String }`
     );
   });
@@ -2405,10 +2414,13 @@ describe('legacy registry mode', () => {
     let latestValidSchemaResult = await fetchLatestValidSchema(token);
     expect(latestValidSchemaResult.body.errors).not.toBeDefined();
     expect(latestValidSchemaResult.body.data!.latestValidVersion.schemas.total).toEqual(1);
-    expect(latestValidSchemaResult.body.data!.latestValidVersion.schemas.nodes[0].commit).toEqual('c0');
+    const firstSchema = latestValidSchemaResult.body.data!.latestValidVersion.schemas.nodes[0];
+    expect('commit' in firstSchema && firstSchema.commit).toEqual('c0');
 
     const versionId = (commit: string) =>
-      versionsResult.body.data!.schemaVersions.nodes.find(node => node.commit.commit === commit)!.id;
+      versionsResult.body.data!.schemaVersions.nodes.find(
+        node => 'commit' in node.commit && node.commit.commit === commit
+      )!.id;
 
     // marking the third version as valid should promote it to be the latest valid version
     let versionStatusUpdateResult = await updateSchemaVersionStatus(
@@ -2546,7 +2558,9 @@ describe('legacy registry mode', () => {
     const versionsResult = await fetchVersions(targetSelector, 3, token);
 
     const versionId = (commit: string) =>
-      versionsResult.body.data!.schemaVersions.nodes.find(node => node.commit.commit === commit)!.id;
+      versionsResult.body.data!.schemaVersions.nodes.find(
+        node => 'commit' in node.commit && node.commit.commit === commit
+      )!.id;
 
     // marking the third version as valid should promote it to be the latest valid version and publish it to CDN
     await updateSchemaVersionStatus(
@@ -3156,7 +3170,8 @@ describe('legacy registry mode', () => {
     const latestValid = await fetchLatestValidSchema(writeToken);
 
     expect(composableButBreakingResult.body.data!.schemaPublish.__typename).toBe('SchemaPublishSuccess');
-    expect(latestValid.body.data?.latestValidVersion.schemas.nodes[0].commit).toBe('composable-but-breaking');
+    const firstSchema = latestValid.body.data?.latestValidVersion.schemas.nodes[0]!;
+    expect('commit' in firstSchema && firstSchema.commit).toBe('composable-but-breaking');
   });
 
   test('do not accept breaking changes if schema is composable', async () => {
@@ -3174,6 +3189,7 @@ describe('legacy registry mode', () => {
         organization: org.cleanId,
         type: ProjectType.Federation,
         name: 'foo',
+        useLegacyRegistryModel: true,
       },
       owner_access_token
     );
@@ -3226,6 +3242,7 @@ describe('legacy registry mode', () => {
     const latestValid = await fetchLatestValidSchema(writeToken);
 
     expect(composableButBreakingResult.body.data!.schemaPublish.__typename).toBe('SchemaPublishError');
-    expect(latestValid.body.data?.latestValidVersion.schemas.nodes[0].commit).toBe('init');
+    const firstSchema = latestValid.body.data?.latestValidVersion.schemas.nodes[0]!;
+    expect('commit' in firstSchema && firstSchema.commit).toBe('init');
   });
 });

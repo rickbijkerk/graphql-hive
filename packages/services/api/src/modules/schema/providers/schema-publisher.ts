@@ -19,7 +19,7 @@ import { TargetAccessScope } from '../../auth/providers/target-access';
 import { GitHubIntegrationManager } from '../../integrations/providers/github-integration-manager';
 import type { SchemaModuleConfig } from './config';
 import { SCHEMA_MODULE_CONFIG } from './config';
-import { ensureCompositeSchemas, ensureSchemasWithSDL, isAddedOrModified, SchemaHelper } from './schema-helper';
+import { ensureCompositeSchemas, onlySchemasWithSDL, isAddedOrModified, SchemaHelper } from './schema-helper';
 import { Conclusion } from './models/shared';
 import { CompositeModel } from './models/composite';
 import { SingleModel } from './models/single';
@@ -173,7 +173,7 @@ export class SchemaPublisher {
 
   @sentry('SchemaPublisher.delete')
   async delete(input: DeleteInput) {
-    this.logger.info('Checking schema (input=%o)', lodash.omit(input, ['sdl']));
+    this.logger.info('Deleting schema (input=%o)', lodash.omit(input, ['sdl']));
 
     await this.authManager.ensureTargetAccess({
       target: input.target,
@@ -181,9 +181,6 @@ export class SchemaPublisher {
       organization: input.organization,
       scope: TargetAccessScope.REGISTRY_WRITE,
     });
-
-    // deleting a service should be valid or not, if we remove a service and it results in breaking changes, we should inform user about it
-    // --force flag should auto-accept breaking changes
 
     const [project, latestSchemas] = await Promise.all([
       this.projectManager.getProject({
@@ -203,6 +200,10 @@ export class SchemaPublisher {
       throw new HiveError(`Deleting schemas is not available for ${project.type}-type projects`);
     }
 
+    if (project.isUsingLegacyRegistryModel) {
+      throw new HiveError(`Deleting schemas is not available for the legacy registry model`);
+    }
+
     const deletion = await this.composite.delete({
       input,
       project,
@@ -215,8 +216,19 @@ export class SchemaPublisher {
       };
     }
 
+    const { isComposable, service, baseSchema } = deletion;
+
+    await this.schemaManager.deleteSchema({
+      isComposable,
+      serviceName: service.service_name,
+      baseSchema,
+      organization: input.organization,
+      project: input.project,
+      target: input.target,
+    });
+
     return {
-      ok: deletion.deletedService,
+      ok: service,
     };
   }
 
@@ -254,7 +266,7 @@ export class SchemaPublisher {
         }),
       ]);
 
-      const schemas = ensureSchemasWithSDL(
+      const schemas = onlySchemasWithSDL(
         await this.schemaManager.getSchemasOfVersion({
           organization: selector.organization,
           project: selector.project,
@@ -263,7 +275,6 @@ export class SchemaPublisher {
           includeMetadata: true,
         })
       );
-
       this.logger.info('Deploying version to CDN (version=%s)', latestVersion.id);
       await this.updateCDN(
         {
@@ -273,7 +284,7 @@ export class SchemaPublisher {
             project.type === ProjectType.FEDERATION
               ? await this.schemaManager.matchOrchestrator(project.type).supergraph(
                   schemas.map(s => this.helper.createSchemaObject(s)),
-                  project.externalComposition
+                  project
                 )
               : null,
           schemas,
@@ -334,10 +345,10 @@ export class SchemaPublisher {
                   ensureCompositeSchemas(schemas)
                     .filter(isAddedOrModified)
                     .map(s => this.helper.createSchemaObject(s)),
-                  project.externalComposition
+                  project
                 )
               : null,
-          schemas: ensureSchemasWithSDL(schemas),
+          schemas: onlySchemasWithSDL(schemas),
         });
       }
     }
@@ -467,6 +478,7 @@ export class SchemaPublisher {
     if (conclusion === Conclusion.Publish) {
       // if the schema is valid or the user is forcing the publish, we can go ahead and publish it
       this.logger.debug('Publishing new version');
+      // here
       const newVersion = await this.publishNewVersion({
         input,
         isComposable,
@@ -479,17 +491,10 @@ export class SchemaPublisher {
         errors,
         initial: isInitial,
         action: 'action' in schema.after ? schema.after.action : 'N/A',
+        cdn,
       });
 
       newVersionId = newVersion.id;
-
-      if (cdn) {
-        await this.publishToCDN({
-          target,
-          project,
-          ...cdn,
-        });
-      }
     }
 
     if (input.github) {
@@ -550,6 +555,7 @@ export class SchemaPublisher {
     errors,
     initial,
     action,
+    cdn,
   }: {
     isComposable: boolean;
     input: PublishInput;
@@ -562,6 +568,10 @@ export class SchemaPublisher {
     errors: Types.SchemaError[];
     initial: boolean;
     action: 'ADD' | 'MODIFY' | 'N/A';
+    cdn: {
+      schemas: readonly SchemaWithSDL[];
+      supergraph: string | null;
+    } | null;
   }) {
     const commits = schemas
       .filter(s => s.id !== newSchema.id) // do not include the incoming schema
@@ -594,6 +604,18 @@ export class SchemaPublisher {
       }),
     ]);
 
+    if (cdn) {
+      try {
+        await this.updateCDN({
+          target,
+          project,
+          ...cdn,
+        });
+      } catch (e) {
+        this.logger.error(`Failed to publish to CDN!`, e);
+      }
+    }
+
     void this.alertsManager
       .triggerSchemaChangeNotifications({
         organization,
@@ -612,30 +634,6 @@ export class SchemaPublisher {
       });
 
     return schemaVersion;
-  }
-
-  @sentry('SchemaPublisher.publishToCDN')
-  private async publishToCDN({
-    target,
-    project,
-    schemas,
-    supergraph,
-  }: {
-    target: Target;
-    project: Project;
-    schemas: readonly SchemaWithSDL[];
-    supergraph: string | null;
-  }) {
-    try {
-      await this.updateCDN({
-        target,
-        project,
-        schemas,
-        supergraph,
-      });
-    } catch (e) {
-      this.logger.error(`Failed to publish to CDN!`, e);
-    }
   }
 
   private async updateCDN(

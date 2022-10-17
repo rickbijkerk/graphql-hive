@@ -80,10 +80,7 @@ export class SchemaValidator {
       }
     }
 
-    const compositionErrors = await orchestrator.validate(
-      afterWithBase,
-      project.externalComposition.enabled ? project.externalComposition : null
-    );
+    const compositionErrors = await orchestrator.validate(afterWithBase, project);
 
     if (isInitial) {
       return {
@@ -100,8 +97,8 @@ export class SchemaValidator {
 
     try {
       const [existingSchema, incomingSchema] = await Promise.all([
-        orchestrator.build(schemas.before, project.externalComposition),
-        orchestrator.build(schemas.after, project.externalComposition),
+        orchestrator.build(schemas.before, project),
+        orchestrator.build(schemas.after, project),
       ]);
       if (existingSchema) {
         changes = await this.inspector.diff(buildSchema(existingSchema), buildSchema(incomingSchema), selector);

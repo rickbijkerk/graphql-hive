@@ -51,13 +51,33 @@ fragment TargetEssentials on Target {
   hasSchema
 }
 
-fragment SchemaFields on Schema {
+fragment SingleSchemaFields on SingleSchema {
   id
   author
-  source
-  service
-  url
   commit
+  sdl
+}
+
+fragment AddedCompositeSchemaFields on AddedCompositeSchema {
+  id
+  author
+  commit
+  sdl
+  serviceName
+  serviceUrl
+}
+
+fragment ModifiedCompositeSchemaFields on ModifiedCompositeSchema {
+  id
+  author
+  commit
+  sdl
+  serviceName
+  serviceUrl
+}
+fragment DeletedCompositeSchemaFields on DeletedCompositeSchema {
+  id
+  serviceName
 }
 
 fragment MemberFields on Member {
@@ -99,12 +119,29 @@ fragment OperationStatsFields on OperationStats {
 fragment SchemaVersionFields on SchemaVersion {
   id
   date
-  valid
+  isComposable
   commit {
-    id
-    author
-    service
-    commit
+    ... on SingleSchema {
+      id
+      author
+      commit
+    }
+    ... on AddedCompositeSchema {
+      id
+      author
+      commit
+      serviceName
+    }
+    ... on ModifiedCompositeSchema {
+      id
+      author
+      commit
+      serviceName
+    }
+    ... on DeletedCompositeSchema {
+      id
+      serviceName
+    }
   }
   baseSchema
 }

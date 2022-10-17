@@ -11,13 +11,19 @@ import type {
   GraphQLSchema,
   GraphQLArgument,
 } from 'graphql';
-import type { SchemaChange, SchemaError, OperationStats, ClientStats } from '../__generated__/types';
 import type {
+  SchemaChange,
+  SchemaError,
+  OperationStats,
+  ClientStats,
+  SchemaPublishPayload as OriginalSchemaPublishPayload,
+} from '../__generated__/types';
+import type {
+  Schema,
   Member,
   Organization,
   PersistedOperation,
   Project,
-  SchemaWithSDL,
   SchemaObject,
   SchemaVersion as SchemaVersionEntity,
   Target,
@@ -26,6 +32,18 @@ import type {
   ActivityObject,
   DateRange,
 } from './entities';
+
+type RequiredProperties<T, P extends keyof T> = Omit<T, P> & Required<Pick<T, P>>;
+
+export type {
+  Schema,
+  SingleSchema,
+  AddedCompositeSchema,
+  ModifiedCompositeSchema,
+  DeletedCompositeSchema,
+} from './entities';
+
+export type SchemaPublishPayload = RequiredProperties<OriginalSchemaPublishPayload, '__typename'>;
 
 export interface SchemaVersion extends SchemaVersionEntity {
   project: string;
@@ -105,7 +123,6 @@ export type SchemaComparePayload =
       message: string;
     };
 export type SchemaCompareResult = readonly [SchemaObject, SchemaObject] | readonly [undefined | null, SchemaObject];
-export type Schema = SchemaWithSDL;
 
 export interface OperationsStats {
   organization: string;

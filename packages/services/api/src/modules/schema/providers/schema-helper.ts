@@ -55,6 +55,10 @@ export function ensureSchemasWithSDL(schemas: readonly Schema[]): SchemaWithSDL[
   return schemas.map(ensureSchemaWithSDL);
 }
 
+export function onlySchemasWithSDL(schemas: readonly Schema[]): SchemaWithSDL[] {
+  return schemas.filter(isSchemaWithSDL);
+}
+
 export function serviceExists(schemas: CompositeSchema[], serviceName: string) {
   return schemas.some(s => s.service_name === serviceName);
 }
