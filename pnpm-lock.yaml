@@ -821,6 +821,7 @@ importers:
       '@emotion/styled': 11.10.0
       '@graphiql/toolkit': 0.6.0
       '@graphql-tools/mock': 8.4.0
+      '@graphql-typed-document-node/core': 3.1.1
       '@hive/emails': '*'
       '@monaco-editor/react': 4.3.1
       '@n1ru4l/react-time-ago': 1.1.0
@@ -980,6 +981,7 @@ importers:
       yup: 0.32.11
       zod: 3.15.1
     devDependencies:
+      '@graphql-typed-document-node/core': 3.1.1_graphql@16.5.0
       '@hive/emails': link:../../services/emails
       '@next/eslint-plugin-next': 12.1.6
       '@tailwindcss/line-clamp': 0.3.1_tailwindcss@2.2.19
