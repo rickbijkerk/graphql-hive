@@ -253,10 +253,12 @@ importers:
     specifiers:
       '@types/lodash.sortby': 4.7.7
       lodash.sortby: 4.7.0
+      tslib: 2.4.0
     dependencies:
       lodash.sortby: 4.7.0
     devDependencies:
       '@types/lodash.sortby': 4.7.7
+      tslib: 2.4.0
     publishDirectory: dist
 
   packages/libraries/external-composition:
@@ -13789,7 +13791,7 @@ packages:
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
       style-value-types: 4.1.4
-      tslib: 2.3.1
+      tslib: 2.4.0
     optionalDependencies:
       '@emotion/is-prop-valid': 0.8.8
     dev: false
