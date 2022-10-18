@@ -1,4 +1,8 @@
+import { Giscus, useTheme } from '@theguild/components';
+import { useRouter } from 'next/router';
 import { VscTerminal } from 'react-icons/vsc';
+
+// eslint-disable-next-line no-process-env, no-undef
 const projectLink = process.env.NEXT_PUBLIC_APP_LINK;
 
 export default {
@@ -34,4 +38,26 @@ export default {
       <meta name="og:title" content="GraphQL Hive: documentation" />
     </>
   ),
+  main: {
+    extraContent() {
+      const { resolvedTheme } = useTheme();
+      const { route } = useRouter();
+
+      if (route === '/') {
+        return null;
+      }
+      return (
+        <Giscus
+          // ensure giscus is reloaded when client side route is changed
+          key={route}
+          repo="kamilkisiela/graphql-hive"
+          repoId="R_kgDOHWr5kA"
+          category="Docs Discussions"
+          categoryId="DIC_kwDOHWr5kM4CSDSS"
+          mapping="pathname"
+          theme={resolvedTheme}
+        />
+      );
+    },
+  },
 };

@@ -8,6 +8,7 @@
     "build": "bob runify --single"
   },
   "dependencies": {
+    "@theguild/components": "4.2.4",
     "next": "12.3.0",
     "nextra": "2.0.0-beta.5",
     "nextra-theme-docs": "2.0.0-beta.5",
