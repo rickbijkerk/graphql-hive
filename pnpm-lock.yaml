@@ -80,7 +80,7 @@ importers:
       rimraf: 3.0.2
       ts-jest: 28.0.2
       tsup: 5.12.7
-      turbo: 1.4.2
+      turbo: 1.5.6
       typescript: 4.7.4
     devDependencies:
       '@babel/core': 7.19.1
@@ -129,7 +129,7 @@ importers:
       rimraf: 3.0.2
       ts-jest: 28.0.2_a3n4sftgyunmzvamuo726gtkn4
       tsup: 5.12.7_typescript@4.7.4
-      turbo: 1.4.2
+      turbo: 1.5.6
       typescript: 4.7.4
 
   integration-tests:
@@ -515,12 +515,12 @@ importers:
 
   packages/services/server:
     specifiers:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/core': 3.0.1
       '@envelop/generic-auth': 5.0.0-alpha-20220928142730-aa29e80b
-      '@envelop/graphql-modules': 4.0.0-alpha-20220928142730-aa29e80b
-      '@envelop/sentry': 4.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/graphql-modules': 4.0.2
+      '@envelop/sentry': 4.0.2
       '@envelop/types': 2.4.1-alpha-20220928142730-aa29e80b
-      '@graphql-hive/client': 0.19.0
+      '@graphql-hive/client': 0.20.0
       '@hive/api': 0.0.1
       '@hive/service-common': 0.0.0
       '@hive/storage': 0.0.0
@@ -538,10 +538,10 @@ importers:
       reflect-metadata: 0.1.13
       zod: 3.15.1
     dependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
-      '@envelop/generic-auth': 5.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a
-      '@envelop/graphql-modules': 4.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a
-      '@envelop/sentry': 4.0.0-alpha-20220928142730-aa29e80b_ml35ntqery5jzr5kuteq7r6uhy
+      '@envelop/core': 3.0.1
+      '@envelop/generic-auth': 5.0.0-alpha-20220928142730-aa29e80b_h7lxkmwswbvt2hfrigehw4yjwa
+      '@envelop/graphql-modules': 4.0.2_h7lxkmwswbvt2hfrigehw4yjwa
+      '@envelop/sentry': 4.0.2_qzydbfz2flklg5rsqywcwswzhi
       '@envelop/types': 2.4.1-alpha-20220928142730-aa29e80b
       '@sentry/integrations': 7.12.1
       '@sentry/node': 7.12.1
@@ -696,6 +696,7 @@ importers:
       ajv: 8.11.0
       dotenv: 10.0.0
       got: 12.5.1
+      graphql: 16.5.0
       kafkajs: 2.2.0
       pino-pretty: 6.0.0
       tiny-lru: 8.0.2
@@ -708,6 +709,7 @@ importers:
       ajv: 8.11.0
       dotenv: 10.0.0
       got: 12.5.1
+      graphql: 16.5.0
       kafkajs: 2.2.0
       tiny-lru: 8.0.2
       zod: 3.15.1
@@ -4070,49 +4072,56 @@ packages:
       '@envelop/types': 2.4.1-alpha-20220928142730-aa29e80b
       tslib: 2.4.0
 
-  /@envelop/extended-validation/2.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a:
+  /@envelop/core/3.0.1:
+    resolution: {integrity: sha512-5tRy0SggFuq8LE8nuWv40UWnn2whlVVdKCMgz1MNyMsF29QifI4uOBnVnSHrSeAi0Hp0vUaDkASuKg0SFtkgFw==}
+    dependencies:
+      '@envelop/types': 3.0.0
+      tslib: 2.4.0
+    dev: false
+
+  /@envelop/extended-validation/2.0.0-alpha-20220928142730-aa29e80b_h7lxkmwswbvt2hfrigehw4yjwa:
     resolution: {integrity: sha512-ZwVDrVORNovQFuKJeX0qZNn7ICR0T87eYh0lrZWgh5ZoVkurueIzsPYl6niIyaoT3PWui7tBieKKBzLSzI8fig==}
     peerDependencies:
       '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/core': 3.0.1
       '@graphql-tools/utils': 8.12.0_graphql@16.5.0
       graphql: 16.5.0
       tslib: 2.4.0
     dev: false
 
-  /@envelop/generic-auth/5.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a:
+  /@envelop/generic-auth/5.0.0-alpha-20220928142730-aa29e80b_h7lxkmwswbvt2hfrigehw4yjwa:
     resolution: {integrity: sha512-U8q6IXzqYm+gdpQABK3pFzNrsTOuqL0hHCTiWXixWWQ71BQD5spC2Gg7XKqoVby2f6YVNNO6q+auAk+IJevH7A==}
     peerDependencies:
       '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
-      '@envelop/extended-validation': 2.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a
+      '@envelop/core': 3.0.1
+      '@envelop/extended-validation': 2.0.0-alpha-20220928142730-aa29e80b_h7lxkmwswbvt2hfrigehw4yjwa
       graphql: 16.5.0
       tslib: 2.4.0
     dev: false
 
-  /@envelop/graphql-modules/4.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a:
-    resolution: {integrity: sha512-/AkYPzwNYaPWv4WcFMMtRfhg5y02OuUXgT8AhPMeWE7RfpLWUkw6MtDnX8iSs5t9Rm9WAePV+8uWCBuknO/P+w==}
+  /@envelop/graphql-modules/4.0.2_h7lxkmwswbvt2hfrigehw4yjwa:
+    resolution: {integrity: sha512-KF8KEphrbApDg4yLVbl6Zi4bwwtjxSEw6+nnsPeV6KjMhj2tocCrABuY4cBtDwsPTIm/IeY7ZIIS+G8J7WVY/A==}
     peerDependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/core': ^3.0.2
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
       graphql-modules: ^1 || ^2.0.0
     dependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/core': 3.0.1
       graphql: 16.5.0
       tslib: 2.4.0
     dev: false
 
-  /@envelop/on-resolve/2.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a:
-    resolution: {integrity: sha512-3jg58nimWv4kQvOvdF9SiPtqTn5BKGBCmamAAoPqQitJtpCJJYGtKrUvJ242jGHdZJ1GRq9HPhIr2uYSsyjVHA==}
+  /@envelop/on-resolve/2.0.2_h7lxkmwswbvt2hfrigehw4yjwa:
+    resolution: {integrity: sha512-EoVdZAQZq/3SyskRKDC6U7Do2r2qB2PzknEkckfisU8Hxi8tf26azddjIUSaMUOg6dhV4RTozrCVgGbWl6zQkw==}
     peerDependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/core': ^3.0.2
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/core': 3.0.1
       graphql: 16.5.0
     dev: false
 
@@ -4138,15 +4147,15 @@ packages:
       lru-cache: 6.0.0
       tslib: 2.4.0
 
-  /@envelop/sentry/4.0.0-alpha-20220928142730-aa29e80b_ml35ntqery5jzr5kuteq7r6uhy:
-    resolution: {integrity: sha512-h/7P8yQ3U0oeSqny2wyoIslI/KdyAO+i3jMEauyzpsdt3FGr9hMaicB3lx/tk8PNdjnhoA0abZUBZFBdDDhYRA==}
+  /@envelop/sentry/4.0.2_qzydbfz2flklg5rsqywcwswzhi:
+    resolution: {integrity: sha512-gUGJ/ruji7vDkSUbbajhFW1MNE/TGz+RjmGPFysf4vfvMVmcnjuRQJIFzFvEB+aoKSbKOeQhJvL9e2npkEERrw==}
     peerDependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
+      '@envelop/core': ^3.0.2
       '@sentry/node': ^6 || ^7
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
-      '@envelop/core': 3.0.0-alpha-20220928142730-aa29e80b
-      '@envelop/on-resolve': 2.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a
+      '@envelop/core': 3.0.1
+      '@envelop/on-resolve': 2.0.2_h7lxkmwswbvt2hfrigehw4yjwa
       '@sentry/node': 7.12.1
       graphql: 16.5.0
       tslib: 2.4.0
@@ -4156,6 +4165,12 @@ packages:
     resolution: {integrity: sha512-EJcnthzOVLCd2Rwr07qIWUqLUtuvAGXcFcjMq91OhhzVlnhOtUe0oPGUbdsPSMmbmc5XhdJvyStjq+oxf9YBfQ==}
     dependencies:
       tslib: 2.4.0
+
+  /@envelop/types/3.0.0:
+    resolution: {integrity: sha512-ohcZE+XNvgNqURdCA5RLN0yW3nbvi4Pkq8TA6RpG16PKakl3yDgzXBLit1SR6+9By0/XCBfto/9r48ZH25kmvw==}
+    dependencies:
+      tslib: 2.4.0
+    dev: false
 
   /@envelop/validation-cache/5.0.0-alpha-20220928142730-aa29e80b_5kw2ewkdawiiecxt245h3sqx7a:
     resolution: {integrity: sha512-z6oQN/Pj3KD3bMpJS2cV0fFPLw2SJpFC+VAqKnfa6rVerMmv3CHgww7ApdVN+HNBSN6PT1YGVS3z5VAwX5itpQ==}
@@ -23374,137 +23389,65 @@ packages:
     dependencies:
       safe-buffer: 5.2.1
 
-  /turbo-android-arm64/1.4.2:
-    resolution: {integrity: sha512-h6PorJ+muKDQE3wETwrkx3NpqypAxjIFLP3b8RQaAoNvxYa1JTSC71VMtYxMbwuDk58A1KGbXLDteR4by8Lqew==}
-    cpu: [arm64]
-    os: [android]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-darwin-64/1.4.2:
-    resolution: {integrity: sha512-HrXRwx+5FuKeR4r2ea2mWO5dImzxG7z987t4xZWytEWJ0gEujln1z1cjwotYU1l2pq8slJS8W3q9Qv3JRMrSkQ==}
+  /turbo-darwin-64/1.5.6:
+    resolution: {integrity: sha512-CWdXMwenBS2+QXIR2Czx7JPnAcoMzWx/QwTDcHVxZyeayMHgz8Oq5AHCtfaHDSfV8YhD3xa0GLSk6+cFt+W8BQ==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-darwin-arm64/1.4.2:
-    resolution: {integrity: sha512-/qkMqq1hdbM/I0gchx08/ZZucgnQVp6gd03tHHYnyG20z8a39f38MbX7+I5aLRpa3pQzBk8RgNx0o7G1T+KvzA==}
+  /turbo-darwin-arm64/1.5.6:
+    resolution: {integrity: sha512-c/aXgW9JuXT2bJSKf01pdSDQKnrdcdj3WFKmKiVldb9We6eqFzI0fLHBK97k5LM/OesmRMfCMQ2Cv2DU8RqBAA==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-freebsd-64/1.4.2:
-    resolution: {integrity: sha512-bZcjR7GxpuE/0qz/aKg4gWDa+6eiuoV0cRnqCJ/rae14/iSmBt0MsMa+lUH5gZUFj581Dj8fQRoBeE+EOau5CA==}
-    cpu: [x64]
-    os: [freebsd]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-freebsd-arm64/1.4.2:
-    resolution: {integrity: sha512-dDx++7AELGAHuaMQjzNiKjSPu/xdDelUtRjWOzJWmwXzrgJlwNgQ93p+LYEA7LBWVZ8a32fpBE/VDait0alIJw==}
-    cpu: [arm64]
-    os: [freebsd]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-linux-32/1.4.2:
-    resolution: {integrity: sha512-AAxsEYhgv6x4UXwCoiRe+iL2pd+ArsJQDMgJGsJn+Tb09ca6+i1rTgdOTgcCSyvRwbXt0LYzqXN9zp6FwG6VHQ==}
-    cpu: [ia32]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-linux-64/1.4.2:
-    resolution: {integrity: sha512-t7gGxp1ILmGwzymcf72Lw4Ca916Bi9j2C4xPnJ2CAqxMWQOJKCRvyOuUHC/uy1kFDjR2yszxMb+ZJL6P3nccfA==}
+  /turbo-linux-64/1.5.6:
+    resolution: {integrity: sha512-y/jNF7SG+XJEwk2GxIqy3g4dj/a0PgZKDGyOkp24qp4KBRcHBl6dI1ZEfNed30EhEqmW4F5Dr7IpeCZoqgbrMg==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-linux-arm/1.4.2:
-    resolution: {integrity: sha512-6Rri//bX3wPMa8D0sSie05Xuze+6jTUDt4qsKp+JoQVanUKkKmRaVDpyV4WuFfjDbC5iP4ocN20FeaXenMFxTA==}
-    cpu: [arm]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-linux-arm64/1.4.2:
-    resolution: {integrity: sha512-V7eBFUOrIvLvjrc81UE8C+NfqBRKADyKrrbKD9hMG5beE/piZZNGoHUwuEgLgsykCSfHjn1sQCidocVztuTMAw==}
+  /turbo-linux-arm64/1.5.6:
+    resolution: {integrity: sha512-FRcxPtW7eFrbR3QaYBVX8cK7i+2Cerqi6F0t5ulcq+d1OGSdSW3l35rPPyJdwCzCy+k/S9sBcyCV0RtbS6RKCQ==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-linux-mips64le/1.4.2:
-    resolution: {integrity: sha512-C0JpzpwyvhW5ChWr6S7ulUd8a+1SBLe2mLBepTWaXTh/5+sFDU/AMwPNkhpfV5o0gEtz03UPm7Y4G6dqU3UCAQ==}
-    cpu: [mipsel]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-linux-ppc64le/1.4.2:
-    resolution: {integrity: sha512-ipxyQCj3NXq/2V6a4lKoNDt8CjcufICgHAvOhAUmoAxz4kIEKRvA/75xsPpt2Ih/a4fWGxsbWFK6oA+ac0l3jQ==}
-    cpu: [ppc64]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-windows-32/1.4.2:
-    resolution: {integrity: sha512-pCvsh8mPSw6ZFABQqeJzfercnsOwCj1LpbWTPW1QftDij6zw1OWU4jWU529Ub1f+GMBej+xm/ufJhT+8A3NhwA==}
-    cpu: [ia32]
-    os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /turbo-windows-64/1.4.2:
-    resolution: {integrity: sha512-GnvM8uGOA6idUloDDxiEgUpIx5o5ZJL0ARL7f+6r/vfwA+qlSe/F+4hDCmT3+Xkg7/7zDZix5ViKVoTDMBP/Ig==}
+  /turbo-windows-64/1.5.6:
+    resolution: {integrity: sha512-/5KIExY7zbrbeL5fhKGuO85u5VtJ3Ue4kI0MbYCNnTGe7a10yTYkwswgtGihsgEF4AW0Nm0159aHmXZS2Le8IA==}
     cpu: [x64]
     os: [win32]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-windows-arm64/1.4.2:
-    resolution: {integrity: sha512-2mCPiDnMLY924+M07mMo464cjOr0EITuIkK67IBm3EeEwSlunOmQk+LRc/Jq/Zx6Zuzp5XPZ2fZVvmmSFfogpQ==}
+  /turbo-windows-arm64/1.5.6:
+    resolution: {integrity: sha512-p+LQN9O39+rZuOAyc6BzyVGvdEKo+v+XmtdeyZsZpfj4xuOLtsEptW1w6cUD439u0YcPknuccGq1MQ0lXQ6Xuw==}
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo/1.4.2:
-    resolution: {integrity: sha512-ry1vUs5oHCIM+Sef8HED2XsbL28YAeclCrOtDp9zbZZMUX1r5s01COqOJjFJZfDiv2zSlUge9IIQXprM8BfrtA==}
+  /turbo/1.5.6:
+    resolution: {integrity: sha512-xJO/fhiMo4lI62iGR9OgUfJTC9tnnuoMwNC52IfvvBDEPlA8RWGMS8SFpDVG9bNCXvVRrtUTNJXMe6pJWBiOTA==}
     hasBin: true
     requiresBuild: true
     optionalDependencies:
-      turbo-android-arm64: 1.4.2
-      turbo-darwin-64: 1.4.2
-      turbo-darwin-arm64: 1.4.2
-      turbo-freebsd-64: 1.4.2
-      turbo-freebsd-arm64: 1.4.2
-      turbo-linux-32: 1.4.2
-      turbo-linux-64: 1.4.2
-      turbo-linux-arm: 1.4.2
-      turbo-linux-arm64: 1.4.2
-      turbo-linux-mips64le: 1.4.2
-      turbo-linux-ppc64le: 1.4.2
-      turbo-windows-32: 1.4.2
-      turbo-windows-64: 1.4.2
-      turbo-windows-arm64: 1.4.2
+      turbo-darwin-64: 1.5.6
+      turbo-darwin-arm64: 1.5.6
+      turbo-linux-64: 1.5.6
+      turbo-linux-arm64: 1.5.6
+      turbo-windows-64: 1.5.6
+      turbo-windows-arm64: 1.5.6
     dev: true
 
   /twilio/3.82.2_debug@4.3.4:
