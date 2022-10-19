@@ -5,12 +5,13 @@ import EmailVerification from 'supertokens-node/recipe/emailverification';
 import type { TypeProvider } from 'supertokens-node/recipe/thirdparty/types';
 import type { TypeInput as ThirdPartEmailPasswordTypeInput } from 'supertokens-node/recipe/thirdpartyemailpassword/types';
 import { fetch } from '@whatwg-node/fetch';
-import { appInfo } from './app-info';
+import { appInfo } from '../../lib/supertokens/app-info';
 import zod from 'zod';
 import * as crypto from 'crypto';
 import { createTRPCClient } from '@trpc/client';
 import type { EmailsApi } from '@hive/emails';
 import { env } from '@/env/backend';
+import { createThirdPartyEmailPasswordNodeOktaProvider } from '../../lib/supertokens/third-party-email-password-node-okta-provider';
 
 export const backendConfig = (): TypeInput => {
   const trpcService = createTRPCClient<EmailsApi>({
@@ -33,6 +34,10 @@ export const backendConfig = (): TypeInput => {
         clientSecret: env.auth.google.clientSecret,
       })
     );
+  }
+
+  if (env.auth.okta) {
+    providers.push(createThirdPartyEmailPasswordNodeOktaProvider(env.auth.okta));
   }
 
   return {
