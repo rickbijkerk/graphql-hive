@@ -5,7 +5,7 @@ import {
   deleteSchema,
   createProject,
   createToken,
-  fetchLatestValidSchema,
+  fetchLatestComposableVersion,
   fetchLatestSchema,
 } from '../../../testkit/flow';
 import { authenticate } from '../../../testkit/auth';
@@ -141,11 +141,11 @@ test('can delete a service with target:registry:write access', async () => {
   expect(deleteResult.body.data!.schemaDelete.ok).toBeNull();
   expect(deleteResult.body.data!.schemaDelete.errors?.total).toEqual(2);
 
-  let latestValidResult = await fetchLatestValidSchema(token);
+  let latestValidResult = await fetchLatestComposableVersion(token);
 
   expect(latestValidResult.body.errors).not.toBeDefined();
   // expect the latest valid schema to contain two services
-  expect(latestValidResult.body.data!.latestValidVersion.schemas.total).toEqual(2);
+  expect(latestValidResult.body.data!.latestComposableVersion.schemas.total).toEqual(2);
 
   // Now, it tries to delete a service, but with --force
   deleteResult = await deleteSchema(
@@ -161,12 +161,12 @@ test('can delete a service with target:registry:write access', async () => {
   expect(deleteResult.body.data!.schemaDelete.ok?.__typename).toBe('DeletedSchema');
   expect(deleteResult.body.data!.schemaDelete.errors).toBeNull();
 
-  latestValidResult = await fetchLatestValidSchema(token);
+  latestValidResult = await fetchLatestComposableVersion(token);
 
   expect(latestValidResult.body.errors).not.toBeDefined();
   // expect the latest valid schema to contain one service
-  expect(latestValidResult.body.data!.latestValidVersion.schemas.total).toHaveLength(1);
-  const firstSchema = latestValidResult.body.data!.latestValidVersion.schemas.nodes[0];
+  expect(latestValidResult.body.data!.latestComposableVersion.schemas.total).toEqual(1);
+  const firstSchema = latestValidResult.body.data!.latestComposableVersion.schemas.nodes[0];
   expect('sdl' in firstSchema && firstSchema.sdl).toMatch(/pong/);
 });
 
@@ -263,9 +263,9 @@ test('deleting a service should affect the composition status of the new version
   expect(deleteResult.body.data!.schemaDelete.ok?.__typename).toBe('DeletedSchema');
   expect(deleteResult.body.data!.schemaDelete.errors).toBeNull();
 
-  const latestValidResult = await fetchLatestValidSchema(token);
+  const latestValidResult = await fetchLatestComposableVersion(token);
   expect(latestValidResult.body.errors).not.toBeDefined();
-  expect(latestValidResult.body.data!.latestValidVersion.schemas.total).toEqual(2);
+  expect(latestValidResult.body.data!.latestComposableVersion.schemas.total).toEqual(2);
 
   const latestResult = await fetchLatestSchema(token);
   expect(latestResult.body.errors).not.toBeDefined();

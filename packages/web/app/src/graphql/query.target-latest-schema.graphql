@@ -1,14 +1,12 @@
 query LatestSchema($selector: TargetSelectorInput!) {
   target(selector: $selector) {
     ...TargetFields
-    latestSchemaVersion {
+    latestRegistryVersion {
       id
       isComposable
       schemas {
         nodes {
-          ...AddedCompositeSchemaFields
-          ...ModifiedCompositeSchemaFields
-          ...DeletedCompositeSchemaFields
+          ...CompositeSchemaFields
           ...SingleSchemaFields
         }
       }

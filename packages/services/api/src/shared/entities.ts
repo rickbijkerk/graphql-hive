@@ -74,25 +74,30 @@ export const ModifiedCompositeSchemaModel = z
 
 export type ModifiedCompositeSchema = z.infer<typeof ModifiedCompositeSchemaModel>;
 
-export const CompositeSchemaModel = z.union([
-  DeletedCompositeSchemaModel,
-  AddedCompositeSchemaModel,
-  ModifiedCompositeSchemaModel,
-]);
+export const CompositeSchemaModel = z.union([AddedCompositeSchemaModel, ModifiedCompositeSchemaModel]);
 export type CompositeSchema = z.infer<typeof CompositeSchemaModel>;
 export type Schema = SingleSchema | CompositeSchema;
-export type SchemaWithSDL = SingleSchema | AddedCompositeSchema | ModifiedCompositeSchema;
+
+export type RegistryAddAction = Omit<AddedCompositeSchema, 'metadata' | 'sdl'>;
+export type RegistryDeleteAction = Omit<DeletedCompositeSchema, 'metadata' | 'sdl'>;
+export type RegistryModifyAction = Omit<ModifiedCompositeSchema, 'metadata' | 'sdl'>;
+export type RegistryNotApplicableAction = Omit<SingleSchema, 'sdl' | 'metadata'>;
+
+export type RegistryAction =
+  | RegistryAddAction
+  | RegistryDeleteAction
+  | RegistryModifyAction
+  | RegistryNotApplicableAction;
 
 export interface DateRange {
   from: Date;
   to: Date;
 }
 
-export interface SchemaVersion {
+export interface RegistryVersion {
   id: string;
   isComposable: boolean;
   date: number;
-  commit: string;
   base_schema: string | null;
 }
 

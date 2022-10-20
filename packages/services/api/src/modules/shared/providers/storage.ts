@@ -6,7 +6,7 @@ import type {
   PersistedOperation,
   Project,
   Schema,
-  SchemaVersion,
+  RegistryVersion,
   Target,
   User,
   ActivityObject,
@@ -164,10 +164,10 @@ export interface Storage {
       }
     | never
   >;
-  getLatestComposableVersion(_: TargetSelector): Promise<SchemaVersion | never>;
-  getMaybeLatestComposableVersion(_: TargetSelector): Promise<SchemaVersion | null | never>;
-  getLatestVersion(_: TargetSelector): Promise<SchemaVersion | never>;
-  getMaybeLatestVersion(_: TargetSelector): Promise<SchemaVersion | null>;
+  getLatestComposableVersion(_: TargetSelector): Promise<RegistryVersion | never>;
+  getMaybeLatestComposableVersion(_: TargetSelector): Promise<RegistryVersion | null | never>;
+  getLatestVersion(_: TargetSelector): Promise<RegistryVersion | never>;
+  getMaybeLatestVersion(_: TargetSelector): Promise<RegistryVersion | null>;
 
   getSchemasOfVersion(
     _: {
@@ -182,12 +182,12 @@ export interface Storage {
   ): Promise<readonly Schema[] | never>;
   getVersions(_: Paginated<TargetSelector>): Promise<
     | {
-        versions: readonly SchemaVersion[];
+        versions: readonly RegistryVersion[];
         hasMore: boolean;
       }
     | never
   >;
-  getVersion(_: TargetSelector & { version: string }): Promise<SchemaVersion | never>;
+  getVersion(_: TargetSelector & { version: string }): Promise<RegistryVersion | never>;
 
   updateSchemaUrlOfVersion(_: TargetSelector & { version: string; url?: string | null; commit: string }): Promise<void>;
   updateServiceName(_: TargetSelector & { commit: string; name: string }): Promise<void>;
@@ -200,7 +200,7 @@ export interface Storage {
       author: string;
       commit: string;
     } & TargetSelector
-  ): Promise<SchemaVersion>;
+  ): Promise<RegistryVersion>;
   createVersion(
     _: {
       isComposable: boolean;
@@ -214,14 +214,14 @@ export interface Storage {
         base_schema: string | null;
       };
     } & TargetSelector
-  ): Promise<SchemaVersion | never>;
+  ): Promise<RegistryVersion | never>;
 
   updateVersionStatus(
     _: {
       valid: boolean;
       version: string;
     } & TargetSelector
-  ): Promise<SchemaVersion | never>;
+  ): Promise<RegistryVersion | never>;
 
   getSchema(_: { commit: string; target: string }): Promise<Schema | never>;
 

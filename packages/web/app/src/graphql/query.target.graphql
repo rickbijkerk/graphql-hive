@@ -9,14 +9,12 @@ query target($organizationId: ID!, $targetId: ID!, $projectId: ID!) {
   }
   target(selector: { organization: $organizationId, project: $projectId, target: $targetId }) {
     ...TargetFields
-    latestSchemaVersion {
+    latestRegistryVersion {
       id
       isComposable
       schemas {
         nodes {
-          ...AddedCompositeSchemaFields
-          ...ModifiedCompositeSchemaFields
-          ...DeletedCompositeSchemaFields
+          ...CompositeSchemaFields
           ...SingleSchemaFields
         }
       }

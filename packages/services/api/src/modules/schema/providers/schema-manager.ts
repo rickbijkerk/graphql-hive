@@ -1,6 +1,6 @@
 import { Injectable, Scope } from 'graphql-modules';
 import lodash from 'lodash';
-import { SchemaVersion } from '../../../shared/mappers';
+import { RegistryVersion } from '../../../shared/mappers';
 import { Orchestrator, ProjectType } from '../../../shared/entities';
 import { atomic, stringifySelector } from '../../../shared/helpers';
 import { HiveError } from '../../../shared/errors';
@@ -207,7 +207,9 @@ export class SchemaManager {
     };
   }
 
-  async updateSchemaVersionStatus(input: TargetSelector & { version: string; valid: boolean }): Promise<SchemaVersion> {
+  async updateSchemaVersionStatus(
+    input: TargetSelector & { version: string; valid: boolean }
+  ): Promise<RegistryVersion> {
     this.logger.debug('Updating schema version status (input=%o)', input);
     await this.authManager.ensureTargetAccess({
       ...input,

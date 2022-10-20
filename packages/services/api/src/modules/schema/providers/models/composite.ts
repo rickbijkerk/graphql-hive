@@ -81,10 +81,6 @@ export class CompositeModel {
 
     const { schemas: afterSchemas, existing } = swapServices(schemas, incoming);
 
-    if (existing?.action === 'DELETE') {
-      throw new Error('DELETE is not supported yet');
-    }
-
     const schemaObjects = {
       before: schemas.filter(isAddedOrModified).map(s => this.helper.createSchemaObject(s)),
       after: afterSchemas.filter(isAddedOrModified).map(s => this.helper.createSchemaObject(s)),

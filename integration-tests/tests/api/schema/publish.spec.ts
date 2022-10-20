@@ -8,8 +8,8 @@ import {
   updateBaseSchema,
   fetchVersions,
   fetchLatestSchema,
-  fetchLatestValidSchema,
-  updateSchemaVersionStatus,
+  fetchLatestComposableVersion,
+  updateRegistryVersionStatus,
   fetchSchemaFromCDN,
   createTarget,
   fetchMetadataFromCDN,
@@ -175,7 +175,7 @@ test('can publish a schema with target:registry:write access', async () => {
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(2);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(2);
 });
 
 test('base schema should not affect the output schema persisted in db', async () => {
@@ -266,7 +266,7 @@ test('base schema should not affect the output schema persisted in db', async ()
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(2);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(2);
 
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
@@ -343,7 +343,7 @@ test('directives should not be removed (federation)', async () => {
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
@@ -418,7 +418,7 @@ test('should allow to update the URL of a Federated service without changing the
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
   // try to update the schema again, with force and url set
   const updateResult = await publishSchema(
@@ -510,7 +510,7 @@ test('should allow to update the URL of a Federated service while also changing 
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
@@ -602,7 +602,7 @@ test('directives should not be removed (stitching)', async () => {
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
@@ -679,7 +679,7 @@ test('directives should not be removed (single)', async () => {
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
   const latestResult = await fetchLatestSchema(writeToken);
   expect(latestResult.body.errors).not.toBeDefined();
@@ -900,7 +900,7 @@ test('marking versions as valid should not be available', async () => {
   expect(result.body.data!.schemaPublish.__typename).toBe('SchemaPublishSuccess');
 
   // marking the third version as valid should promote it to be the latest valid version
-  const versionStatusUpdateResult = await updateSchemaVersionStatus(
+  const versionStatusUpdateResult = await updateRegistryVersionStatus(
     {
       organization: org.cleanId,
       project: project.cleanId,
@@ -1405,7 +1405,7 @@ test('publish new schema when a field is moved from one service to another (stit
   );
 
   expect(versionsResult.body.errors).not.toBeDefined();
-  expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(3);
+  expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(3);
 });
 
 test('accept breaking changes if schema is composable', async () => {
@@ -1472,10 +1472,10 @@ test('accept breaking changes if schema is composable', async () => {
     writeToken
   );
 
-  const latestValid = await fetchLatestValidSchema(writeToken);
+  const latestValid = await fetchLatestComposableVersion(writeToken);
 
   expect(composableButBreakingResult.body.data!.schemaPublish.__typename).toBe('SchemaPublishSuccess');
-  const firstSchema = latestValid.body.data?.latestValidVersion.schemas.nodes[0];
+  const firstSchema = latestValid.body.data?.latestComposableVersion.schemas.nodes[0];
   expect(firstSchema && 'commit' in firstSchema && firstSchema.commit).toBe('composable-but-breaking');
 });
 
@@ -1638,7 +1638,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(2);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(2);
   });
 
   test('base schema should not affect the output schema persisted in db', async () => {
@@ -1730,7 +1730,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(2);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(2);
 
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
@@ -1808,7 +1808,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
@@ -1884,7 +1884,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
     // try to update the schema again, with force and url set
     const updateResult = await publishSchema(
@@ -1977,7 +1977,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
@@ -2070,7 +2070,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
@@ -2148,7 +2148,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(1);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(1);
 
     const latestResult = await fetchLatestSchema(writeToken);
     expect(latestResult.body.errors).not.toBeDefined();
@@ -2408,22 +2408,22 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(3);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(3);
 
     // the initial version should be the latest valid version
-    let latestValidSchemaResult = await fetchLatestValidSchema(token);
+    let latestValidSchemaResult = await fetchLatestComposableVersion(token);
     expect(latestValidSchemaResult.body.errors).not.toBeDefined();
-    expect(latestValidSchemaResult.body.data!.latestValidVersion.schemas.total).toEqual(1);
-    const firstSchema = latestValidSchemaResult.body.data!.latestValidVersion.schemas.nodes[0];
+    expect(latestValidSchemaResult.body.data!.latestComposableVersion.schemas.total).toEqual(1);
+    const firstSchema = latestValidSchemaResult.body.data!.latestComposableVersion.schemas.nodes[0];
     expect('commit' in firstSchema && firstSchema.commit).toEqual('c0');
 
     const versionId = (commit: string) =>
-      versionsResult.body.data!.schemaVersions.nodes.find(
-        node => 'commit' in node.commit && node.commit.commit === commit
+      versionsResult.body.data!.registryVersions.nodes.find(
+        node => 'commit' in node.action && node.action.commit === commit
       )!.id;
 
     // marking the third version as valid should promote it to be the latest valid version
-    let versionStatusUpdateResult = await updateSchemaVersionStatus(
+    let versionStatusUpdateResult = await updateRegistryVersionStatus(
       {
         organization: org.cleanId,
         project: project.cleanId,
@@ -2435,14 +2435,14 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionStatusUpdateResult.body.errors).not.toBeDefined();
-    expect(versionStatusUpdateResult.body.data!.updateSchemaVersionStatus.id).toEqual(versionId('c2'));
+    expect(versionStatusUpdateResult.body.data!.updateRegistryVersionStatus.id).toEqual(versionId('c2'));
 
-    latestValidSchemaResult = await fetchLatestValidSchema(token);
+    latestValidSchemaResult = await fetchLatestComposableVersion(token);
     expect(latestValidSchemaResult.body.errors).not.toBeDefined();
-    expect(latestValidSchemaResult.body.data!.latestValidVersion.id).toEqual(versionId('c2'));
+    expect(latestValidSchemaResult.body.data!.latestComposableVersion.id).toEqual(versionId('c2'));
 
     // marking the second (not the most recent) version as valid should NOT promote it to be the latest valid version
-    versionStatusUpdateResult = await updateSchemaVersionStatus(
+    versionStatusUpdateResult = await updateRegistryVersionStatus(
       {
         organization: org.cleanId,
         project: project.cleanId,
@@ -2454,9 +2454,9 @@ describe('legacy registry mode', () => {
     );
     expect(versionStatusUpdateResult.body.errors).not.toBeDefined();
 
-    latestValidSchemaResult = await fetchLatestValidSchema(token);
+    latestValidSchemaResult = await fetchLatestComposableVersion(token);
     expect(latestValidSchemaResult.body.errors).not.toBeDefined();
-    expect(latestValidSchemaResult.body.data!.latestValidVersion.id).toEqual(versionId('c2'));
+    expect(latestValidSchemaResult.body.data!.latestComposableVersion.id).toEqual(versionId('c2'));
   });
 
   test('marking only the most recent version as valid result in an update of CDN', async () => {
@@ -2558,12 +2558,12 @@ describe('legacy registry mode', () => {
     const versionsResult = await fetchVersions(targetSelector, 3, token);
 
     const versionId = (commit: string) =>
-      versionsResult.body.data!.schemaVersions.nodes.find(
-        node => 'commit' in node.commit && node.commit.commit === commit
+      versionsResult.body.data!.registryVersions.nodes.find(
+        node => 'commit' in node.action && node.action.commit === commit
       )!.id;
 
     // marking the third version as valid should promote it to be the latest valid version and publish it to CDN
-    await updateSchemaVersionStatus(
+    await updateRegistryVersionStatus(
       {
         organization: org.cleanId,
         project: project.cleanId,
@@ -2582,7 +2582,7 @@ describe('legacy registry mode', () => {
     expect(cdnMetadataResult.body).toEqual({ c2: 1 });
 
     // marking the second (not the most recent) version as valid should NOT promote it to be the latest valid version
-    await updateSchemaVersionStatus(
+    await updateRegistryVersionStatus(
       {
         organization: org.cleanId,
         project: project.cleanId,
@@ -3097,7 +3097,7 @@ describe('legacy registry mode', () => {
     );
 
     expect(versionsResult.body.errors).not.toBeDefined();
-    expect(versionsResult.body.data!.schemaVersions.nodes).toHaveLength(3);
+    expect(versionsResult.body.data!.registryVersions.nodes).toHaveLength(3);
   });
 
   test('(experimental_acceptBreakingChanges) accept breaking changes if schema is composable', async () => {
@@ -3167,10 +3167,10 @@ describe('legacy registry mode', () => {
       writeToken
     );
 
-    const latestValid = await fetchLatestValidSchema(writeToken);
+    const latestValid = await fetchLatestComposableVersion(writeToken);
 
     expect(composableButBreakingResult.body.data!.schemaPublish.__typename).toBe('SchemaPublishSuccess');
-    const firstSchema = latestValid.body.data?.latestValidVersion.schemas.nodes[0]!;
+    const firstSchema = latestValid.body.data?.latestComposableVersion.schemas.nodes[0]!;
     expect('commit' in firstSchema && firstSchema.commit).toBe('composable-but-breaking');
   });
 
@@ -3239,10 +3239,10 @@ describe('legacy registry mode', () => {
       writeToken
     );
 
-    const latestValid = await fetchLatestValidSchema(writeToken);
+    const latestValid = await fetchLatestComposableVersion(writeToken);
 
     expect(composableButBreakingResult.body.data!.schemaPublish.__typename).toBe('SchemaPublishError');
-    const firstSchema = latestValid.body.data?.latestValidVersion.schemas.nodes[0]!;
+    const firstSchema = latestValid.body.data?.latestComposableVersion.schemas.nodes[0]!;
     expect('commit' in firstSchema && firstSchema.commit).toBe('init');
   });
 });

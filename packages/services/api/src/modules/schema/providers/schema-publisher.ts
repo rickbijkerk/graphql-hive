@@ -1,7 +1,7 @@
 import { Injectable, Inject, Scope } from 'graphql-modules';
 import lodash from 'lodash';
 import type { Span } from '@sentry/types';
-import { Schema, SchemaWithSDL, Target, Project, ProjectType } from '../../../shared/entities';
+import { Schema, Target, Project, ProjectType } from '../../../shared/entities';
 import * as Types from '../../../__generated__/types';
 import { ProjectManager } from '../../project/providers/project-manager';
 import { Logger } from '../../shared/providers/logger';
@@ -569,7 +569,7 @@ export class SchemaPublisher {
     initial: boolean;
     action: 'ADD' | 'MODIFY' | 'N/A';
     cdn: {
-      schemas: readonly SchemaWithSDL[];
+      schemas: readonly Schema[];
       supergraph: string | null;
     } | null;
   }) {
@@ -645,7 +645,7 @@ export class SchemaPublisher {
     }: {
       target: Target;
       project: Project;
-      schemas: readonly SchemaWithSDL[];
+      schemas: readonly Schema[];
       supergraph?: string | null;
     },
     span?: Span

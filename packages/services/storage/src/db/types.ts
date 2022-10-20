@@ -9,10 +9,9 @@
 
 export type alert_channel_type = "SLACK" | "WEBHOOK";
 export type alert_type = "SCHEMA_CHANGE_NOTIFICATIONS";
-export type commit_action = "ADD" | "DELETE" | "MODIFY" | "N/A";
 export type operation_kind = "mutation" | "query" | "subscription";
 export type organization_type = "PERSONAL" | "REGULAR";
-export type schema_change_criticality_level = "BREAKING" | "DANGEROUS" | "SAFE";
+export type registry_action = "ADD" | "DELETE" | "MODIFY" | "N/A";
 export type user_role = "ADMIN" | "MEMBER";
 
 export interface activities {
@@ -46,16 +45,14 @@ export interface alerts {
 }
 
 export interface commits {
-  action: commit_action;
   author: string;
   commit: string;
+  content: string;
   created_at: Date;
   id: string;
   metadata: string | null;
   project_id: string;
-  sdl: string | null;
-  service_name: string | null;
-  service_url: string | null;
+  service: string | null;
   target_id: string;
 }
 
@@ -132,6 +129,34 @@ export interface projects {
   validation_url: string | null;
 }
 
+export interface registry_actions {
+  action: registry_action;
+  author: string;
+  commit: string;
+  created_at: Date;
+  id: string;
+  metadata: string | null;
+  project_id: string;
+  sdl: string | null;
+  service_name: string | null;
+  service_url: string | null;
+  target_id: string;
+}
+
+export interface registry_version_action {
+  action_id: string;
+  version_id: string;
+}
+
+export interface registry_versions {
+  action_id: string;
+  base_schema: string | null;
+  created_at: Date;
+  id: string;
+  is_composable: boolean;
+  target_id: string;
+}
+
 export interface target_validation {
   destination_target_id: string;
   target_id: string;
@@ -177,6 +202,7 @@ export interface users {
 
 export interface version_commit {
   commit_id: string;
+  url: string | null;
   version_id: string;
 }
 
@@ -185,6 +211,6 @@ export interface versions {
   commit_id: string;
   created_at: Date;
   id: string;
-  is_composable: boolean;
   target_id: string;
+  valid: boolean;
 }

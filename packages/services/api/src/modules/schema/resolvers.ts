@@ -142,7 +142,7 @@ export const resolvers: SchemaModule.Resolvers = {
         errors: result.errors,
       };
     },
-    async updateSchemaVersionStatus(_, { input }, { injector }) {
+    async updateRegistryVersionStatus(_, { input }, { injector }) {
       const translator = injector.get(IdTranslator);
       const [organization, project, target] = await Promise.all([
         translator.translateOrganizationId(input),
@@ -296,60 +296,7 @@ export const resolvers: SchemaModule.Resolvers = {
     },
   },
   Query: {
-    async schemaCompare(_, { selector }, { injector }) {
-      const translator = injector.get(IdTranslator);
-      const schemaManager = injector.get(SchemaManager);
-      const projectManager = injector.get(ProjectManager);
-      const helper = injector.get(SchemaHelper);
-
-      const [organizationId, projectId, targetId] = await Promise.all([
-        translator.translateOrganizationId(selector),
-        translator.translateProjectId(selector),
-        translator.translateTargetId(selector),
-      ]);
-
-      const project = await projectManager.getProject({
-        organization: organizationId,
-        project: projectId,
-      });
-      const orchestrator = schemaManager.matchOrchestrator(project.type);
-
-      // TODO: collect stats from a period between these two versions
-      const [schemasBefore, schemasAfter] = await Promise.all([
-        injector.get(SchemaManager).getSchemasOfVersion({
-          organization: organizationId,
-          project: projectId,
-          target: targetId,
-          version: selector.before,
-        }),
-        injector.get(SchemaManager).getSchemasOfVersion({
-          organization: organizationId,
-          project: projectId,
-          target: targetId,
-          version: selector.after,
-        }),
-      ]);
-
-      return Promise.all([
-        orchestrator.build(
-          onlySchemasWithSDL(schemasBefore).map(s => helper.createSchemaObject(s)),
-          project
-        ),
-        orchestrator.build(
-          onlySchemasWithSDL(schemasAfter).map(s => helper.createSchemaObject(s)),
-          project
-        ),
-      ]).catch(reason => {
-        if (reason instanceof SchemaBuildError) {
-          return Promise.resolve({
-            message: reason.message,
-          });
-        }
-
-        return Promise.reject(reason);
-      });
-    },
-    async schemaCompareToPrevious(_, { selector }, { injector }) {
+    async registryVersionCompareToPrevious(_, { selector }, { injector }) {
       const translator = injector.get(IdTranslator);
       const schemaManager = injector.get(SchemaManager);
       const projectManager = injector.get(ProjectManager);
@@ -404,7 +351,7 @@ export const resolvers: SchemaModule.Resolvers = {
         return Promise.reject(reason);
       });
     },
-    async schemaVersions(_, { selector, after, limit }, { injector }) {
+    async registryVersions(_, { selector, after, limit }, { injector }) {
       const translator = injector.get(IdTranslator);
       const [organization, project, target] = await Promise.all([
         translator.translateOrganizationId(selector),
@@ -420,7 +367,7 @@ export const resolvers: SchemaModule.Resolvers = {
         limit,
       });
     },
-    async schemaVersion(_, { selector }, { injector }) {
+    async registryVersion(_, { selector }, { injector }) {
       const translator = injector.get(IdTranslator);
       const [organization, project, target] = await Promise.all([
         translator.translateOrganizationId(selector),
@@ -444,7 +391,7 @@ export const resolvers: SchemaModule.Resolvers = {
         target: target.id,
       });
     },
-    async latestValidVersion(_, __, { injector }) {
+    async latestComposableVersion(_, __, { injector }) {
       const target = await injector.get(TargetManager).getTargetFromToken();
 
       return injector.get(SchemaManager).getLatestValidVersion({
@@ -455,7 +402,7 @@ export const resolvers: SchemaModule.Resolvers = {
     },
   },
   Target: {
-    latestSchemaVersion(target, _, { injector }) {
+    latestRegistryVersion(target, _, { injector }) {
       return injector.get(SchemaManager).getMaybeLatestVersion({
         target: target.id,
         project: target.projectId,
@@ -477,11 +424,8 @@ export const resolvers: SchemaModule.Resolvers = {
       });
     },
   },
-  SchemaVersion: {
-    valid(version) {
-      return version.isComposable;
-    },
-    commit(version, _, { injector }) {
+  RegistryVersion: {
+    action(version, _, { injector }) {
       return injector.get(SchemaManager).getCommit({
         commit: version.commit,
         organization: version.organization,
@@ -591,32 +535,44 @@ export const resolvers: SchemaModule.Resolvers = {
       };
     },
   },
+  RegistryAddAction: {
+    __isTypeOf(action) {
+      return action.action === 'ADD';
+    },
+  },
+  RegistryDeleteAction: {
+    __isTypeOf(action) {
+      return action.action === 'DELETE';
+    },
+  },
+  RegistryModifyAction: {
+    __isTypeOf(action) {
+      return action.action === 'MODIFY';
+    },
+  },
+  RegistryNotApplicableAction: {
+    __isTypeOf(action) {
+      return action.action === 'N/A';
+    },
+  },
   SingleSchema: {
     __isTypeOf(schema) {
       return schema.action == 'N/A';
     },
   },
-  AddedCompositeSchema: {
+  CompositeSchema: {
     __isTypeOf(schema) {
-      return schema.action == 'ADD';
+      return schema.action === 'ADD' || schema.action === 'MODIFY';
     },
+    serviceName: schema => schema.service_name,
+    serviceUrl: schema => schema.service_url,
   },
-  ModifiedCompositeSchema: {
-    __isTypeOf(schema) {
-      return schema.action === 'MODIFY';
-    },
-  },
-  DeletedCompositeSchema: {
-    __isTypeOf(schema) {
-      return schema.action === 'DELETE';
-    },
-  },
-  SchemaCompareError: {
+  RegistryVersionCompareError: {
     __isTypeOf(error) {
       return 'message' in error;
     },
   },
-  SchemaCompareResult: {
+  RegistryVersionCompareResult: {
     __isTypeOf(obj) {
       return Array.isArray(obj);
     },
@@ -638,7 +594,7 @@ export const resolvers: SchemaModule.Resolvers = {
     },
   },
   SchemaConnection: createConnection(),
-  SchemaVersionConnection: {
+  RegistryVersionConnection: {
     pageInfo(info) {
       return {
         hasMore: info.hasMore,

@@ -3,14 +3,12 @@ mutation updateSchemaServiceName($input: UpdateSchemaServiceNameInput!) {
     ok {
       updatedTarget {
         ...TargetFields
-        latestSchemaVersion {
+        latestRegistryVersion {
           id
           isComposable
           schemas {
             nodes {
-              ...AddedCompositeSchemaFields
-              ...ModifiedCompositeSchemaFields
-              ...DeletedCompositeSchemaFields
+              ...CompositeSchemaFields
               ...SingleSchemaFields
             }
           }

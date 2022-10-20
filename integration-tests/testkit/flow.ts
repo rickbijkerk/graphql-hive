@@ -16,10 +16,10 @@ import type {
   UpdateTargetValidationSettingsInput,
   OperationsStatsSelectorInput,
   UpdateBaseSchemaInput,
-  SchemaVersionsInput,
+  RegistryVersionsInput,
   CreateTargetInput,
   UpdateTargetNameInput,
-  SchemaVersionUpdateInput,
+  RegistryVersionUpdateInput,
   TargetSelectorInput,
   OrganizationSelectorInput,
   SchemaSyncCdnInput,
@@ -622,20 +622,11 @@ export function fetchLatestSchema(token: string) {
                 commit
                 sdl
               }
-              ... on AddedCompositeSchema {
+              ... on CompositeSchema {
                 commit
                 serviceName
                 serviceUrl
                 sdl
-              }
-              ... on ModifiedCompositeSchema {
-                commit
-                serviceName
-                serviceUrl
-                sdl
-              }
-              ... on DeletedCompositeSchema {
-                serviceName
               }
             }
             total
@@ -648,11 +639,11 @@ export function fetchLatestSchema(token: string) {
   });
 }
 
-export function fetchLatestValidSchema(token: string) {
+export function fetchLatestComposableVersion(token: string) {
   return execute({
     document: gql(/* GraphQL */ `
-      query latestValidVersion {
-        latestValidVersion {
+      query latestComposableVersion {
+        latestComposableVersion {
           id
           baseSchema
           schemas {
@@ -661,20 +652,11 @@ export function fetchLatestValidSchema(token: string) {
                 commit
                 sdl
               }
-              ... on AddedCompositeSchema {
+              ... on CompositeSchema {
                 commit
                 serviceName
                 serviceUrl
                 sdl
-              }
-              ... on ModifiedCompositeSchema {
-                commit
-                serviceName
-                serviceUrl
-                sdl
-              }
-              ... on DeletedCompositeSchema {
-                serviceName
               }
             }
             total
@@ -687,34 +669,30 @@ export function fetchLatestValidSchema(token: string) {
   });
 }
 
-export function fetchVersions(selector: SchemaVersionsInput, limit: number, token: string) {
+export function fetchVersions(selector: RegistryVersionsInput, limit: number, token: string) {
   return execute({
     document: gql(/* GraphQL */ `
-      query schemaVersions($limit: Int!, $selector: SchemaVersionsInput!) {
-        schemaVersions(selector: $selector, limit: $limit) {
+      query registryVersions($limit: Int!, $selector: RegistryVersionsInput!) {
+        registryVersions(selector: $selector, limit: $limit) {
           nodes {
             id
-            valid
+            isComposable
             date
-            commit {
-              ... on SingleSchema {
+            action {
+              ... on RegistryAddAction {
+                id
                 commit
-                sdl
               }
-              ... on AddedCompositeSchema {
+              ... on RegistryModifyAction {
+                id
                 commit
-                serviceName
-                serviceUrl
-                sdl
               }
-              ... on ModifiedCompositeSchema {
+              ... on RegistryDeleteAction {
+                id
+              }
+              ... on RegistryNotApplicableAction {
+                id
                 commit
-                serviceName
-                serviceUrl
-                sdl
-              }
-              ... on DeletedCompositeSchema {
-                serviceName
               }
             }
             baseSchema
@@ -724,20 +702,11 @@ export function fetchVersions(selector: SchemaVersionsInput, limit: number, toke
                   commit
                   sdl
                 }
-                ... on AddedCompositeSchema {
+                ... on CompositeSchema {
                   commit
                   serviceName
                   serviceUrl
                   sdl
-                }
-                ... on ModifiedCompositeSchema {
-                  commit
-                  serviceName
-                  serviceUrl
-                  sdl
-                }
-                ... on DeletedCompositeSchema {
-                  serviceName
                 }
               }
             }
@@ -779,30 +748,29 @@ export function publishPersistedOperations(input: PublishPersistedOperationInput
   });
 }
 
-export function updateSchemaVersionStatus(input: SchemaVersionUpdateInput, token: string) {
+export function updateRegistryVersionStatus(input: RegistryVersionUpdateInput, token: string) {
   return execute({
     document: gql(/* GraphQL */ `
-      mutation updateSchemaVersionStatus($input: SchemaVersionUpdateInput!) {
-        updateSchemaVersionStatus(input: $input) {
+      mutation updateRegistryVersionStatus($input: RegistryVersionUpdateInput!) {
+        updateRegistryVersionStatus(input: $input) {
           id
           date
-          valid
-          commit {
-            ... on SingleSchema {
-              id
-              commit
-              sdl
-            }
-            ... on AddedCompositeSchema {
+          isComposable
+          action {
+            ... on RegistryAddAction {
               id
               commit
             }
-            ... on ModifiedCompositeSchema {
+            ... on RegistryModifyAction {
               id
               commit
             }
-            ... on DeletedCompositeSchema {
+            ... on RegistryDeleteAction {
               id
+            }
+            ... on RegistryNotApplicableAction {
+              id
+              commit
             }
           }
         }

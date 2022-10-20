@@ -25,7 +25,7 @@ import type {
   PersistedOperation,
   Project,
   SchemaObject,
-  SchemaVersion as SchemaVersionEntity,
+  RegistryVersion as RegistryVersionEntity,
   Target,
   Token,
   User,
@@ -38,14 +38,16 @@ type RequiredProperties<T, P extends keyof T> = Omit<T, P> & Required<Pick<T, P>
 export type {
   Schema,
   SingleSchema,
-  AddedCompositeSchema,
-  ModifiedCompositeSchema,
-  DeletedCompositeSchema,
+  CompositeSchema,
+  RegistryNotApplicableAction,
+  RegistryAddAction,
+  RegistryDeleteAction,
+  RegistryModifyAction,
 } from './entities';
 
 export type SchemaPublishPayload = RequiredProperties<OriginalSchemaPublishPayload, '__typename'>;
 
-export interface SchemaVersion extends SchemaVersionEntity {
+export interface RegistryVersion extends RegistryVersionEntity {
   project: string;
   target: string;
   organization: string;
@@ -113,16 +115,18 @@ export type SchemaConnection = readonly Schema[];
 export type TokenConnection = readonly Token[];
 export type OperationStatsConnection = ReadonlyArray<Omit<OperationStats, 'duration'> & { duration: DurationStats }>;
 export type ClientStatsConnection = readonly ClientStats[];
-export type SchemaVersionConnection = {
-  nodes: readonly SchemaVersion[];
+export type RegistryVersionConnection = {
+  nodes: readonly RegistryVersion[];
   hasMore: boolean;
 };
-export type SchemaComparePayload =
-  | SchemaCompareResult
+export type RegistryVersionComparePayload =
+  | RegistryVersionCompareResult
   | {
       message: string;
     };
-export type SchemaCompareResult = readonly [SchemaObject, SchemaObject] | readonly [undefined | null, SchemaObject];
+export type RegistryVersionCompareResult =
+  | readonly [SchemaObject, SchemaObject]
+  | readonly [undefined | null, SchemaObject];
 
 export interface OperationsStats {
   organization: string;

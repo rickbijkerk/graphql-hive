@@ -18,12 +18,7 @@ import { TargetLayout } from '@/components/layouts';
 import { MarkAsValid } from '@/components/target/history/MarkAsValid';
 import { Button, DataWrapper, GraphQLBlock, noSchema, Title } from '@/components/v2';
 import { RefreshIcon } from '@/components/v2/icon';
-import {
-  SingleSchemaFieldsFragment,
-  AddedCompositeSchemaFieldsFragment,
-  ModifiedCompositeSchemaFieldsFragment,
-  DeletedCompositeSchemaFieldsFragment,
-} from '@/gql/graphql';
+import { SingleSchemaFieldsFragment, CompositeSchemaFieldsFragment } from '@/gql/graphql';
 import {
   LatestSchemaDocument,
   OrganizationFieldsFragment,
@@ -39,14 +34,12 @@ const SchemaServiceName_UpdateSchemaServiceName = gql(/* GraphQL */ `
       ok {
         updatedTarget {
           ...TargetFields
-          latestSchemaVersion {
+          latestRegistryVersion {
             id
-            valid
+            isComposable
             schemas {
               nodes {
-                ...AddedCompositeSchemaFields
-                ...ModifiedCompositeSchemaFields
-                ...DeletedCompositeSchemaFields
+                ...CompositeSchemaFields
                 ...SingleSchemaFields
               }
             }
@@ -68,7 +61,7 @@ const SchemaServiceName = ({
   version,
 }: {
   version: string;
-  schema: AddedCompositeSchemaFieldsFragment | ModifiedCompositeSchemaFieldsFragment;
+  schema: CompositeSchemaFieldsFragment;
   target: TargetFieldsFragment;
   project: ProjectFieldsFragment;
   organization: OrganizationFieldsFragment;
@@ -116,27 +109,10 @@ const SchemaServiceName = ({
   );
 };
 
-function isSchemaWithServiceName(
-  schema:
-    | SingleSchemaFieldsFragment
-    | AddedCompositeSchemaFieldsFragment
-    | ModifiedCompositeSchemaFieldsFragment
-    | DeletedCompositeSchemaFieldsFragment
-): schema is
-  | AddedCompositeSchemaFieldsFragment
-  | ModifiedCompositeSchemaFieldsFragment
-  | DeletedCompositeSchemaFieldsFragment {
+function isCompositeSchema(
+  schema: SingleSchemaFieldsFragment | CompositeSchemaFieldsFragment
+): schema is CompositeSchemaFieldsFragment {
   return 'serviceName' in schema;
-}
-
-function isAddedOrModifiedSchema(
-  schema:
-    | SingleSchemaFieldsFragment
-    | AddedCompositeSchemaFieldsFragment
-    | ModifiedCompositeSchemaFieldsFragment
-    | DeletedCompositeSchemaFieldsFragment
-): schema is AddedCompositeSchemaFieldsFragment | ModifiedCompositeSchemaFieldsFragment {
-  return isSchemaWithServiceName(schema) && 'sdl' in schema;
 }
 
 const Schemas = ({
@@ -150,12 +126,7 @@ const Schemas = ({
   organization: OrganizationFieldsFragment;
   project: ProjectFieldsFragment;
   target: TargetFieldsFragment;
-  schemas: (
-    | SingleSchemaFieldsFragment
-    | AddedCompositeSchemaFieldsFragment
-    | ModifiedCompositeSchemaFieldsFragment
-    | DeletedCompositeSchemaFieldsFragment
-  )[];
+  schemas: (SingleSchemaFieldsFragment | CompositeSchemaFieldsFragment)[];
   version: string;
   filterService?: string;
 }): ReactElement => {
@@ -166,7 +137,7 @@ const Schemas = ({
   return (
     <div className="flex flex-col gap-8">
       {schemas
-        .filter(isAddedOrModifiedSchema)
+        .filter(isCompositeSchema)
         .filter(schema => {
           if (filterService && schema.serviceName) {
             return schema.serviceName.toLowerCase().includes(filterService.toLowerCase());

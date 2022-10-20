@@ -3,12 +3,10 @@ import { print } from 'graphql';
 import { createHash } from 'crypto';
 import { createSchemaObject } from '../../../shared/entities';
 import type {
-  SchemaWithSDL,
   Schema,
   CompositeSchema,
   AddedCompositeSchema,
   ModifiedCompositeSchema,
-  DeletedCompositeSchema,
   SchemaObject,
 } from '../../../shared/entities';
 import { CompositeSchemaModel } from './../../../shared/entities';
@@ -23,10 +21,6 @@ export function isAdded(schema: CompositeSchema): schema is AddedCompositeSchema
   return schema.action === 'ADD';
 }
 
-export function isDeleted(schema: CompositeSchema): schema is DeletedCompositeSchema {
-  return schema.action === 'DELETE';
-}
-
 export function isCompositeSchema(schema: Schema): schema is CompositeSchema {
   return 'action' in schema && typeof schema.action === 'string';
 }
@@ -35,7 +29,7 @@ export function isAddedOrModified(schema: Schema): schema is AddedCompositeSchem
   return isCompositeSchema(schema) && (isAdded(schema) || isModified(schema));
 }
 
-export function isSchemaWithSDL(schema: Schema): schema is SchemaWithSDL {
+export function isSchemaWithSDL(schema: Schema): schema is Schema {
   return 'sdl' in schema && typeof schema.sdl === 'string';
 }
 
@@ -43,7 +37,7 @@ export function ensureCompositeSchemas(schemas: readonly Schema[]): CompositeSch
   return schemas.map(schema => CompositeSchemaModel.parse(schema));
 }
 
-export function ensureSchemaWithSDL(schema: Schema): SchemaWithSDL | never {
+export function ensureSchemaWithSDL(schema: Schema): Schema | never {
   if (isSchemaWithSDL(schema)) {
     return schema;
   }
@@ -51,11 +45,11 @@ export function ensureSchemaWithSDL(schema: Schema): SchemaWithSDL | never {
   throw new Error('Schema does not have SDL');
 }
 
-export function ensureSchemasWithSDL(schemas: readonly Schema[]): SchemaWithSDL[] | never {
+export function ensureSchemasWithSDL(schemas: readonly Schema[]): Schema[] | never {
   return schemas.map(ensureSchemaWithSDL);
 }
 
-export function onlySchemasWithSDL(schemas: readonly Schema[]): SchemaWithSDL[] {
+export function onlySchemasWithSDL(schemas: readonly Schema[]): Schema[] {
   return schemas.filter(isSchemaWithSDL);
 }
 
@@ -95,8 +89,8 @@ export function swapServices(
   global: true,
 })
 export class SchemaHelper {
-  @cache<SchemaWithSDL>(schema => JSON.stringify(schema))
-  createSchemaObject(schema: SchemaWithSDL): SchemaObject {
+  @cache<Schema>(schema => JSON.stringify(schema))
+  createSchemaObject(schema: Schema): SchemaObject {
     return createSchemaObject(schema);
   }
 
@@ -106,12 +100,7 @@ export class SchemaHelper {
 
   createChecksum(schema: Schema): string {
     return createHash('md5')
-      .update(
-        isCompositeSchema(schema) && isDeleted(schema)
-          ? `${schema.service_name}:DELETED`
-          : print(sortDocumentNode(this.createSchemaObject(schema).document)),
-        'utf-8'
-      )
+      .update(print(sortDocumentNode(this.createSchemaObject(schema).document)), 'utf-8')
       .digest('hex');
   }
 

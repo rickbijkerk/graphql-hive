@@ -4,7 +4,7 @@ import type {
   Project,
   Target,
   Schema,
-  SchemaVersion,
+  RegistryVersion,
   Member,
   ActivityObject,
   TargetSettings,
@@ -21,7 +21,6 @@ import type {
 import { sql, TaggedTemplateLiteralInvocation } from 'slonik';
 import { update } from 'slonik-utilities';
 import {
-  commits,
   getPool,
   organizations,
   organization_member,
@@ -29,7 +28,6 @@ import {
   targets,
   target_validation,
   users,
-  versions,
   objectToParams,
   activities,
   persisted_operations,
@@ -37,7 +35,9 @@ import {
   alerts,
   organizations_billing,
   organization_invitations,
-  version_commit,
+  registry_actions,
+  registry_versions,
+  registry_version_action,
 } from './db';
 import { batch } from '@theguild/buddy';
 
@@ -163,7 +163,7 @@ export async function createStorage(connection: string, maximumPoolSize: number)
     };
   }
 
-  function transformSchema(schema: commits | Omit<commits, 'metadata'>): Schema {
+  function transformSchema(schema: registry_actions | Omit<registry_actions, 'metadata'>): Schema {
     const base = {
       id: schema.id,
       author: schema.author,
@@ -182,11 +182,7 @@ export async function createStorage(connection: string, maximumPoolSize: number)
     }
 
     if (schema.action === 'DELETE') {
-      return {
-        ...base,
-        service_name: schema.service_name!,
-        action: 'DELETE',
-      };
+      throw new Error('DELETE action is not supported');
     }
 
     return {
@@ -199,12 +195,11 @@ export async function createStorage(connection: string, maximumPoolSize: number)
     };
   }
 
-  function transformSchemaVersion(version: versions): SchemaVersion {
+  function transformRegistryVersion(version: registry_versions): RegistryVersion {
     return {
       id: version.id,
       isComposable: version.is_composable,
       date: version.created_at as any,
-      commit: version.commit_id,
       base_schema: version.base_schema,
     };
   }
@@ -1462,14 +1457,14 @@ export async function createStorage(connection: string, maximumPoolSize: number)
             )
         `);
 
-        let action: 'MODIFY' | 'ADD';
+        let action: 'MODIFY' | 'ADD' | 'N/A';
 
         if (input.schema.serviceName) {
           action = currentCommits.rows.filter(r => r.action).some(r => r.service_name === input.schema.serviceName)
             ? 'MODIFY'
             : 'ADD';
         } else {
-          action = currentCommits.rowCount > 0 ? 'MODIFY' : 'ADD';
+          action = 'N/A';
         }
 
         const nonDeletedCommits = currentCommits.rows.filter(r => r.action !== 'DELETE');
@@ -1563,7 +1558,7 @@ export async function createStorage(connection: string, maximumPoolSize: number)
     },
 
     async updateVersionStatus({ version, valid }) {
-      return transformSchemaVersion(
+      return transformRegistryVersion(
         await pool.one<versions>(sql`
           UPDATE public.versions
           SET is_composable = ${valid}
