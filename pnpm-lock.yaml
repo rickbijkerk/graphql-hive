@@ -10,6 +10,7 @@ overrides:
   mjml-cli@4.14.0>html-minifier: '-'
   ws@^8.0.0: ^8.18.0
   ws@*: '>=8.18.0 || >=7.5.10 || >=6.2.3 || >=5.2.4'
+  cookie@<0.7.0: 0.7.2
 
 patchedDependencies:
   '@apollo/federation@0.38.1':
@@ -8847,14 +8848,6 @@ packages:
 
   cookie-signature@1.0.6:
     resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
-
-  cookie@0.4.0:
-    resolution: {integrity: sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==}
-    engines: {node: '>= 0.6'}
-
-  cookie@0.5.0:
-    resolution: {integrity: sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==}
-    engines: {node: '>= 0.6'}
 
   cookie@0.7.1:
     resolution: {integrity: sha512-6DnInpx7SJ2AK3+CTUE/ZM0vWTUboZCegxhC2xiIydHR9jNuTAASBrfEpHhiGOZw/nX51bHt6YQl8jsGo4y/0w==}
@@ -25053,10 +25046,6 @@ snapshots:
 
   cookie-signature@1.0.6: {}
 
-  cookie@0.4.0: {}
-
-  cookie@0.5.0: {}
-
   cookie@0.7.1: {}
 
   cookie@0.7.2: {}
@@ -32398,7 +32387,7 @@ snapshots:
   supertokens-node@15.2.1(encoding@0.1.13):
     dependencies:
       content-type: 1.0.5
-      cookie: 0.4.0
+      cookie: 0.7.2
       cross-fetch: 3.1.8(encoding@0.1.13)
       debug: 4.3.7(supports-color@8.1.1)
       inflation: 2.0.0
@@ -33836,7 +33825,7 @@ snapshots:
 
   youch@3.3.3:
     dependencies:
-      cookie: 0.5.0
+      cookie: 0.7.2
       mustache: 4.2.0
       stacktracey: 2.1.8
 
