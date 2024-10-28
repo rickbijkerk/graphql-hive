@@ -304,9 +304,6 @@ importers:
       '@types/dockerode':
         specifier: 3.3.31
         version: 3.3.31
-      '@types/ioredis':
-        specifier: 5.0.0
-        version: 5.0.0
       bcryptjs:
         specifier: 2.4.3
         version: 2.4.3
@@ -445,9 +442,6 @@ importers:
       '@types/env-ci':
         specifier: 3.1.4
         version: 3.1.4
-      '@types/mkdirp':
-        specifier: 2.0.0
-        version: 2.0.0
       oclif:
         specifier: 4.13.6
         version: 4.13.6(patch_hash=fkmkpwec6wqhte6g47j3tlprse)
@@ -7498,10 +7492,6 @@ packages:
   '@types/ioredis-mock@8.2.5':
     resolution: {integrity: sha512-cZyuwC9LGtg7s5G9/w6rpy3IOZ6F/hFR0pQlWYZESMo1xQUYbDpa6haqB4grTePjsGzcB/YLBFCjqRunK5wieg==}
 
-  '@types/ioredis@5.0.0':
-    resolution: {integrity: sha512-zJbJ3FVE17CNl5KXzdeSPtdltc4tMT3TzC6fxQS0sQngkbFZ6h+0uTafsRqu+eSLIugf6Yb0Ea0SUuRr42Nk9g==}
-    deprecated: This is a stub types definition. ioredis provides its own type definitions, so you do not need this installed.
-
   '@types/is-empty@1.2.1':
     resolution: {integrity: sha512-a3xgqnFTuNJDm1fjsTjHocYJ40Cz3t8utYpi5GNaxzrJC2HSD08ym+whIL7fNqiqBCdM9bcqD1H/tORWAFXoZw==}
 
@@ -7570,10 +7560,6 @@ packages:
 
   '@types/mjml@4.7.1':
     resolution: {integrity: sha512-if/IM7j3B1ZQucsakrJI4qaU8MWBS1NzQ9PfMY3Bxj4vY1Bp2jMXmVJhAUU2eLvts0a+bFL6Efk182BB/g492Q==}
-
-  '@types/mkdirp@2.0.0':
-    resolution: {integrity: sha512-c/iUqMymAlxLAyIK3u5SzrwkrkyOdv1XDc91T+b5FsY7Jr6ERhUD19jJHOhPW4GD6tmN6mFEorfSdks525pwdQ==}
-    deprecated: This is a stub types definition. mkdirp provides its own type definitions, so you do not need this installed.
 
   '@types/ms@0.7.34':
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
@@ -23540,12 +23526,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@types/ioredis@5.0.0':
-    dependencies:
-      ioredis: 5.4.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@types/is-empty@1.2.1': {}
 
   '@types/js-cookie@3.0.6': {}
@@ -23605,10 +23585,6 @@ snapshots:
   '@types/mjml@4.7.1':
     dependencies:
       '@types/mjml-core': 4.7.1
-
-  '@types/mkdirp@2.0.0':
-    dependencies:
-      mkdirp: 3.0.1
 
   '@types/ms@0.7.34': {}
 
