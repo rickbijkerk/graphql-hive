@@ -37,7 +37,7 @@ export default {
         http // http transport is required for subgraphs using standard GraphQL over HTTP.
       }
     })
-    return await gateway(request)
+    return await gateway(request, env, ctx)
   }
 }
 ```
