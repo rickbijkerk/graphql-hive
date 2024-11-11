@@ -289,6 +289,7 @@ function transformOrganizationMemberLegacyScopes(args: {
             'laboratory:modify',
             'schemaCheck:approve',
             'schemaVersion:approve',
+            'target:create',
           ],
           resource: [`hrn:${args.organizationId}:organization/${args.organizationId}`],
         });
