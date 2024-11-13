@@ -285,9 +285,20 @@ function Illustration(props: { className?: string }) {
       <p className={cn('relative text-white/80', styles.text)}>
         {/* We use the longest text to ensure we have enough space. */}
         <span className="invisible">{longestEdgeText}</span>
-        <span className="absolute inset-0">
-          {highlightedEdge !== null ? edgeTexts[highlightedEdge - 1] : null}
-        </span>
+        {edgeTexts.map((text, i) => {
+          return (
+            <span
+              key={i}
+              className={cn(
+                'absolute inset-0',
+                // Makes it accessible by crawlers.
+                highlightedEdge !== null && highlightedEdge - 1 === i ? 'visible' : 'invisible',
+              )}
+            >
+              {text}
+            </span>
+          );
+        })}
       </p>
     </div>
   );
