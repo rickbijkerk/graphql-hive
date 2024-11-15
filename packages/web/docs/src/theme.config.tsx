@@ -49,7 +49,7 @@ function createBreadcrumb(normalizedResult: NormalizedResult) {
       return {
         '@type': 'ListItem',
         position: index + 1,
-        name: path.name === 'index' ? 'Hive' : path.title,
+        name: path.route === '/' ? 'Hive' : path.title,
         item: ensureAbsolute(path.route),
       };
     }),
