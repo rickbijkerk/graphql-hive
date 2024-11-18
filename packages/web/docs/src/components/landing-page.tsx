@@ -33,7 +33,7 @@ export function IndexPage(): ReactElement {
           size="xl"
           className="mx-auto max-w-3xl text-balance text-center text-white"
         >
-          Open-Source GraphQL Platform
+          Open-source GraphQL Federation Platform
         </Heading>
         <p className="mx-auto w-[512px] max-w-[80%] text-center leading-6 text-white/80">
           Schema registry, analytics and gateway for GraphQL federation and other GraphQL APIs.
