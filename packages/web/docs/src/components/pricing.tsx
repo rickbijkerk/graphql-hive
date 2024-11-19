@@ -227,7 +227,12 @@ function PricingSlider({ className, ...rest }: { className?: string }) {
       >
         <span className="font-medium">Running {max}M+ operations?</span>
         <br />
-        Let's talk Enterprise.
+        <button
+          className="underline hover:text-blue-700"
+          onClick={() => (window as any).$crisp?.push(['do', 'chat:open'])}
+        >
+          Talk to us
+        </button>
       </p>
     </label>
   );
