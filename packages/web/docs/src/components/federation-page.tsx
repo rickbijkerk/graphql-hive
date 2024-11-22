@@ -311,7 +311,7 @@ function HowFederationWorks(props: { className?: string }) {
                 <li>Team owns their piece of the GraphQL API</li>
                 <li>They gain autonomy</li>
                 <li>Teams deploy on their own pace</li>
-                <li>Subgraphs are scale as needed</li>
+                <li>Subgraphs are scaled as needed</li>
               </ul>
             </>
           }
