@@ -385,7 +385,7 @@ function HowFederationWorks(props: { className?: string }) {
               </p>
               <h4 className="pt-2 text-lg font-semibold text-white">Query Planning</h4>
               <p>
-                The process of resolving a GraphQL requests is called query planning. During the
+                The process of resolving a GraphQL request is called query planning. During the
                 query planning, the gateway decides which subgraph should resolve a given part of
                 the query, and then sends the query to the appropriate subgraph. The subgraph
                 resolves the query and returns the data. The gateway then combines all the data and
