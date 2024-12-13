@@ -176,7 +176,12 @@ async function main() {
           droppedReports
             .labels({ targetId: tokenInfo.target, orgId: tokenInfo.organization })
             .inc();
-          req.log.info('Rate limited (token=%s)', maskedToken);
+          req.log.info(
+            'Rate limited (token=%s, target=%s, organization=%s)',
+            maskedToken,
+            tokenInfo.target,
+            tokenInfo.organization,
+          );
           void res.status(429).send();
 
           return;
@@ -255,7 +260,12 @@ async function main() {
           stopTimer({
             status: 'error',
           });
-          req.log.error('Failed to collect report (token=%s)', maskedToken);
+          req.log.error(
+            'Failed to collect report (token=%s, target=%s, organization=%s)',
+            maskedToken,
+            tokenInfo.target,
+            tokenInfo.organization,
+          );
           req.log.error(error, 'Failed to collect');
           Sentry.captureException(error, {
             level: 'error',
