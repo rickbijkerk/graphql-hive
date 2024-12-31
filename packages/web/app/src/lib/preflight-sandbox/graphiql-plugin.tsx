@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Subtitle } from '@/components/ui/page';
+import { usePromptManager } from '@/components/ui/prompt';
 import { useToast } from '@/components/ui/use-toast';
 import { FragmentType, graphql, useFragment } from '@/gql';
 import { useLocalStorage, useToggle } from '@/lib/hooks';
@@ -39,6 +40,7 @@ import {
 import { useParams } from '@tanstack/react-router';
 import { cn } from '../utils';
 import type { LogMessage } from './preflight-script-worker';
+import { IFrameEvents } from './shared-types';
 
 export const preflightScriptPlugin: GraphiQLPlugin = {
   icon: () => (
@@ -108,13 +110,6 @@ const monacoProps = {
   },
 } satisfies Record<'script' | 'env', ComponentPropsWithoutRef<typeof MonacoEditor>>;
 
-type PayloadLog = { type: 'log'; log: string };
-type PayloadError = { type: 'error'; error: Error };
-type PayloadResult = { type: 'result'; environmentVariables: Record<string, unknown> };
-type PayloadReady = { type: 'ready' };
-
-type WorkerMessagePayload = PayloadResult | PayloadLog | PayloadError | PayloadReady;
-
 const UpdatePreflightScriptMutation = graphql(`
   mutation UpdatePreflightScript($input: UpdatePreflightScriptInput!) {
     updatePreflightScript(input: $input) {
@@ -163,6 +158,7 @@ export function usePreflightScript(args: {
   target: FragmentType<typeof PreflightScript_TargetFragment> | null;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const prompt = usePromptManager();
 
   const target = useFragment(PreflightScript_TargetFragment, args.target);
   const [isPreflightScriptEnabled, setIsPreflightScriptEnabled] = useLocalStorage(
@@ -202,19 +198,65 @@ export function usePreflightScript(args: {
 
       contentWindow.postMessage(
         {
-          type: 'run',
+          type: IFrameEvents.Incoming.Event.run,
           id,
           script,
           environmentVariables: (environmentVariables && safeParseJSON(environmentVariables)) || {},
-        },
+        } satisfies IFrameEvents.Incoming.EventData,
         '*',
       );
 
+      let isFinished = false;
       const isFinishedD = Promise.withResolvers<void>();
+      const openedPromptIds = new Set<number>();
 
       // eslint-disable-next-line no-inner-declarations
-      function eventHandler(ev: MessageEvent<WorkerMessagePayload>) {
-        if (ev.data.type === 'result') {
+      function setFinished() {
+        isFinished = true;
+        isFinishedD.resolve();
+      }
+
+      // eslint-disable-next-line no-inner-declarations
+      function closedOpenedPrompts() {
+        if (openedPromptIds.size) {
+          for (const promptId of openedPromptIds) {
+            prompt.closePrompt(promptId, null);
+          }
+        }
+      }
+
+      // eslint-disable-next-line no-inner-declarations
+      async function eventHandler(ev: IFrameEvents.Outgoing.MessageEvent) {
+        if (ev.data.type === IFrameEvents.Outgoing.Event.prompt) {
+          const promptId = ev.data.promptId;
+          openedPromptIds.add(promptId);
+          await prompt
+            .openPrompt({
+              id: promptId,
+              title: ev.data.message,
+              defaultValue: ev.data.defaultValue,
+            })
+            .then(value => {
+              if (isFinished) {
+                // ignore prompt response if the script has already finished
+                return;
+              }
+
+              openedPromptIds.delete(promptId);
+              contentWindow?.postMessage(
+                {
+                  type: IFrameEvents.Incoming.Event.promptResponse,
+                  id,
+                  promptId,
+                  value,
+                } satisfies IFrameEvents.Incoming.EventData,
+                '*',
+              );
+            });
+          return;
+        }
+
+        if (ev.data.type === IFrameEvents.Outgoing.Event.result) {
           const mergedEnvironmentVariables = JSON.stringify(
             {
               ...safeParseJSON(latestEnvironmentVariablesRef.current),
@@ -232,11 +274,11 @@ export function usePreflightScript(args: {
               type: 'separator' as const,
             },
           ]);
-          isFinishedD.resolve();
+          setFinished();
           return;
         }
 
-        if (ev.data.type === 'error') {
+        if (ev.data.type === IFrameEvents.Outgoing.Event.error) {
           const error = ev.data.error;
           setLogs(logs => [
             ...logs,
@@ -246,11 +288,13 @@ export function usePreflightScript(args: {
               type: 'separator' as const,
             },
           ]);
-          isFinishedD.resolve();
+          setFinished();
+          closedOpenedPrompts();
+
           return;
         }
 
-        if (ev.data.type === 'log') {
+        if (ev.data.type === IFrameEvents.Outgoing.Event.log) {
           const log = ev.data.log;
           setLogs(logs => [...logs, log]);
           return;
@@ -260,9 +304,12 @@ export function usePreflightScript(args: {
       window.addEventListener('message', eventHandler);
       currentRun.current = () => {
         contentWindow.postMessage({
-          type: 'abort',
+          type: IFrameEvents.Incoming.Event.abort,
           id,
-        });
+        } satisfies IFrameEvents.Incoming.EventData);
+
+        closedOpenedPrompts();
+
         currentRun.current = null;
       };
 
@@ -316,11 +363,12 @@ export function usePreflightScript(args: {
         src="/__preflight-embed"
         title="preflight-worker"
         className="hidden"
+        data-cy="preflight-embed-iframe"
         /**
          * In DEV we need to use "allow-same-origin", as otherwise the embed can not instantiate the webworker (which is loaded from an URL).
          * In PROD the webworker is not
          */
-        sandbox={import.meta.env.DEV ? 'allow-scripts allow-same-origin' : 'allow-scripts'}
+        sandbox={'allow-scripts' + (import.meta.env.DEV ? ' allow-same-origin' : '')}
         ref={iframeRef}
       />
     ),
