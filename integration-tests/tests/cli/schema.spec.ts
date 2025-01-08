@@ -1,7 +1,7 @@
 /* eslint-disable no-process-env */
 import { createHash } from 'node:crypto';
 import { ProjectType } from 'testkit/gql/graphql';
-import { createCLI, schemaCheck, schemaPublish } from '../../testkit/cli';
+import { createCLI, schemaCheck, schemaFetch, schemaPublish } from '../../testkit/cli';
 import { initSeed } from '../../testkit/seed';
 
 describe.each`
@@ -281,4 +281,45 @@ describe.each`
         }),
       );
     });
+
+  test.concurrent('schema:fetch can fetch a schema with target:registry:read access', async () => {
+    const { createOrg } = await initSeed().createOwner();
+    const { inviteAndJoinMember, createProject } = await createOrg();
+    await inviteAndJoinMember();
+    const { createTargetAccessToken } = await createProject(projectType, {
+      useLegacyRegistryModels: model === 'legacy',
+    });
+    const { secret, latestSchema } = await createTargetAccessToken({});
+
+    const cli = createCLI({
+      readonly: secret,
+      readwrite: secret,
+    });
+
+    await schemaPublish([
+      '--registry.accessToken',
+      secret,
+      '--author',
+      'Kamil',
+      '--commit',
+      'abc123',
+      ...serviceNameArgs,
+      ...serviceUrlArgs,
+      'fixtures/init-schema.graphql',
+    ]);
+
+    const schema = await latestSchema();
+    const numSchemas = schema.latestVersion?.schemas.nodes.length;
+    const fetchCmd = cli.fetch({
+      type: 'subgraphs',
+      actionId: 'abc123',
+    });
+    const rHeader = `service\\s+url\\s+date`;
+    const rUrl = `http:\\/\\/\\S+(:\\d+)?|n/a`;
+    const rSubgraph = `[-]+\\s+\\S+\\s+(${rUrl})\\s+\\S+Z\\s+`;
+    const rFooter = `subgraphs length: ${numSchemas}`;
+    await expect(fetchCmd).resolves.toMatch(
+      new RegExp(`${rHeader}\\s+(${rSubgraph}){${numSchemas}}${rFooter}`),
+    );
+  });
 });
