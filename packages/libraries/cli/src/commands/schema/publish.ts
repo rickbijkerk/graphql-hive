@@ -306,7 +306,7 @@ export default class SchemaPublish extends Command<typeof SchemaPublish> {
             this.success('No changes. Skipping.');
           } else {
             if (changes) {
-              renderChanges.call(this, changes);
+              this.log(renderChanges(changes));
             }
             this.success('Schema published');
           }
@@ -331,11 +331,11 @@ export default class SchemaPublish extends Command<typeof SchemaPublish> {
         } else if (result.schemaPublish.__typename === 'SchemaPublishError') {
           const changes = result.schemaPublish.changes;
           const errors = result.schemaPublish.errors;
-          renderErrors.call(this, errors);
+          this.log(renderErrors(errors));
 
           if (changes && changes.total) {
             this.log('');
-            renderChanges.call(this, changes);
+            this.log(renderChanges(changes));
           }
           this.log('');
 

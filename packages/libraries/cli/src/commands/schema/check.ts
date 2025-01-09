@@ -240,14 +240,12 @@ export default class SchemaCheck extends Command<typeof SchemaCheck> {
         } else if (!changes?.total) {
           this.success('No changes');
         } else {
-          renderChanges.call(this, changes);
-          this.log('');
+          this.log(renderChanges(changes));
         }
 
         const warnings = result.schemaCheck.warnings;
         if (warnings?.total) {
-          renderWarnings.call(this, warnings);
-          this.log('');
+          this.log(renderWarnings(warnings));
         }
 
         if (result.schemaCheck.schemaCheck?.webUrl) {
@@ -257,20 +255,17 @@ export default class SchemaCheck extends Command<typeof SchemaCheck> {
         const changes = result.schemaCheck.changes;
         const errors = result.schemaCheck.errors;
         const warnings = result.schemaCheck.warnings;
-        renderErrors.call(this, errors);
+        this.log(renderErrors(errors));
 
         if (warnings?.total) {
-          renderWarnings.call(this, warnings);
-          this.log('');
+          this.log(renderWarnings(warnings));
         }
 
         if (changes && changes.total) {
-          this.log('');
-          renderChanges.call(this, changes);
+          this.log(renderChanges(changes));
         }
 
         if (result.schemaCheck.schemaCheck?.webUrl) {
-          this.log('');
           this.log(`View full report:\n${result.schemaCheck.schemaCheck.webUrl}`);
         }
 

@@ -1,11 +1,12 @@
 import { buildSchema, GraphQLError, Source } from 'graphql';
 import { InvalidDocument, validate } from '@graphql-inspector/core';
-import { Args, Errors, Flags, ux } from '@oclif/core';
+import { Args, Errors, Flags } from '@oclif/core';
 import Command from '../../base-command';
 import { graphql } from '../../gql';
 import { graphqlEndpoint } from '../../helpers/config';
 import { ACCESS_TOKEN_MISSING } from '../../helpers/errors';
 import { loadOperations } from '../../helpers/operations';
+import { Texture } from '../../helpers/texture/texture';
 
 const fetchLatestVersionQuery = graphql(/* GraphQL */ `
   query fetchLatestVersion {
@@ -164,7 +165,7 @@ export default class OperationsCheck extends Command<typeof OperationsCheck> {
         return;
       }
 
-      ux.styledHeader('Summary');
+      this.log(Texture.header('Summary'));
       this.log(
         [
           `Total: ${operations.length}`,
@@ -175,7 +176,7 @@ export default class OperationsCheck extends Command<typeof OperationsCheck> {
         ].join('\n'),
       );
 
-      ux.styledHeader('Details');
+      this.log(Texture.header('Details'));
 
       this.printInvalidDocuments(operationsWithErrors);
       this.exit(1);
@@ -198,7 +199,7 @@ export default class OperationsCheck extends Command<typeof OperationsCheck> {
   private renderErrors(sourceName: string, errors: GraphQLError[]) {
     this.fail(sourceName);
     errors.forEach(e => {
-      this.log(` - ${this.bolderize(e.message)}`);
+      this.log(` - ${Texture.boldQuotedWords(e.message)}`);
     });
     this.log('');
   }
