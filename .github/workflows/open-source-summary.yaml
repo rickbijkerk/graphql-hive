@@ -20,7 +20,6 @@ jobs:
 
       - name: generate license summary
         run: |
-          npx license-checker --list > LICENSE_SUMMARY.txt
-
-      - name: upload summary to action
-        run: cat LICENSE_SUMMARY.txt >> $GITHUB_STEP_SUMMARY
+          LICENSE_SUMMARY=$(npx license-checker --summary)
+          LICENSE_LIST=$(npx license-checker --list)
+          echo "\`\`\`\n$LICENSE_SUMMARY\n\n$LICENSE_LIST\n\`\`\`" >> $GITHUB_STEP_SUMMARY
