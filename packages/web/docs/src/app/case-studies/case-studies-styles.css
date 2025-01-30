@@ -2,14 +2,30 @@
   --nextra-content-width: 1208px;
   --article-max-width: 640px;
 
-  /* hide leftmost column to left-align the case study */
-  & > div:first-of-type > :first-child {
-    @apply hidden;
-  }
-
-  & > div > article {
+  & > .main-content {
     box-sizing: content-box;
-    max-width: var(--article-max-width);
+    width: var(--nextra-content-width);
+    max-width: 100%;
+
+    /* hide leftmost column to left-align the case study */
+    & > div:first-of-type > :first-child {
+      @apply hidden;
+    }
+
+    & > div {
+      @apply ml-0 pl-6 md:pl-12;
+    }
+
+    & > div > article {
+      box-sizing: content-box;
+      max-width: 100%;
+      width: var(--article-max-width);
+      padding: 0;
+    }
+
+    & nav.nextra-toc {
+      @apply hidden;
+    }
   }
 
   @apply text-green-1000 dark:text-white;
