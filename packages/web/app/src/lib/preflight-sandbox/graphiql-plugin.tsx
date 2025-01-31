@@ -26,7 +26,7 @@ import { Subtitle } from '@/components/ui/page';
 import { usePromptManager } from '@/components/ui/prompt';
 import { useToast } from '@/components/ui/use-toast';
 import { FragmentType, graphql, useFragment } from '@/gql';
-import { useLocalStorage, useToggle } from '@/lib/hooks';
+import { useLocalStorage, useLocalStorageJson, useToggle } from '@/lib/hooks';
 import { GraphiQLPlugin } from '@graphiql/react';
 import { Editor as MonacoEditor, OnMount, type Monaco } from '@monaco-editor/react';
 import { Cross2Icon, InfoCircledIcon, Pencil1Icon, TriangleRightIcon } from '@radix-ui/react-icons';
@@ -153,7 +153,7 @@ export function usePreflightScript(args: {
   const prompt = usePromptManager();
 
   const target = useFragment(PreflightScript_TargetFragment, args.target);
-  const [isPreflightScriptEnabled, setIsPreflightScriptEnabled] = useLocalStorage(
+  const [isPreflightScriptEnabled, setIsPreflightScriptEnabled] = useLocalStorageJson(
     'hive:laboratory:isPreflightScriptEnabled',
     false,
   );
@@ -178,6 +178,17 @@ export function usePreflightScript(args: {
     const resultEnvironmentVariablesDecoded: PreflightScriptResultData['environmentVariables'] =
       Kit.tryOr(
         () => JSON.parse(latestEnvironmentVariablesRef.current),
+        // todo: find a better solution than blowing away the user's
+        // invalid localStorage state.
+        //
+        // For example if the user has:
+        //
+        // { "foo": "bar }
+        //
+        // Then when they "Run Script" it will be replaced with:
+        //
+        // {}
+        //
         () => ({}),
       );
     const result: PreflightScriptResultData = {
@@ -280,6 +291,7 @@ export function usePreflightScript(args: {
 
           // Cause the new state of environment variables to be
           // written back to local storage.
+
           const mergedEnvironmentVariablesEncoded = JSON.stringify(
             result.environmentVariables,
             null,
