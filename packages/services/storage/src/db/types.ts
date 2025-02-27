@@ -343,9 +343,11 @@ export interface schema_versions {
   has_persisted_schema_changes: boolean | null;
   id: string;
   is_composable: boolean;
+  metadata_attributes: any | null;
   previous_schema_version_id: string | null;
   record_version: string | null;
   schema_composition_errors: any | null;
+  schema_metadata: any | null;
   supergraph_sdl: string | null;
   tags: Array<string> | null;
   target_id: string;

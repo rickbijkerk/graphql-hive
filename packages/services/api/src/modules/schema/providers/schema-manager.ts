@@ -397,12 +397,19 @@ export class SchemaManager {
             supergraphSDL: null;
             schemaCompositionErrors: Array<SchemaCompositionError>;
             tags: null;
+            schemaMetadata: null;
+            metadataAttributes: null;
           }
         | {
             compositeSchemaSDL: string;
             supergraphSDL: string | null;
             schemaCompositionErrors: null;
             tags: Array<string> | null;
+            schemaMetadata: null | Record<
+              string,
+              Array<{ name: string; content: string; source: string | null }>
+            >;
+            metadataAttributes: null | Record<string, string[]>;
           }
       ),
   ) {
