@@ -9,6 +9,10 @@ on:
 jobs:
   update:
     runs-on: ubuntu-22.04
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -41,7 +45,7 @@ jobs:
         if: steps.check.outputs.update == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GUILD_BOT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Update apollo-router to version ${{ steps.check.outputs.version }}
           branch: apollo-router-update-${{ steps.check.outputs.version }}
           delete-branch: true
