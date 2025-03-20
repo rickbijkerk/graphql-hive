@@ -44,6 +44,7 @@ export class SingleModel {
     baseSchema,
     approvedChanges,
     conditionalBreakingChangeDiffConfig,
+    failDiffOnDangerousChange,
   }: {
     input: {
       sdl: string;
@@ -68,6 +69,7 @@ export class SingleModel {
     organization: Organization;
     approvedChanges: Map<string, SchemaChangeType>;
     conditionalBreakingChangeDiffConfig: null | ConditionalBreakingChangeDiffConfig;
+    failDiffOnDangerousChange: boolean;
   }): Promise<SchemaCheckResult> {
     const incoming: SingleSchema = {
       kind: 'single',
@@ -131,6 +133,7 @@ export class SingleModel {
         approvedChanges,
         existingSdl: previousVersionSdl,
         incomingSdl: compositionCheck.result?.fullSchemaSdl ?? null,
+        failDiffOnDangerousChange,
       }),
       this.checks.policyCheck({
         selector,
@@ -178,6 +181,7 @@ export class SingleModel {
     latestComposable,
     baseSchema,
     conditionalBreakingChangeDiffConfig,
+    failDiffOnDangerousChange,
   }: {
     input: PublishInput;
     organization: Organization;
@@ -195,6 +199,7 @@ export class SingleModel {
     } | null;
     baseSchema: string | null;
     conditionalBreakingChangeDiffConfig: null | ConditionalBreakingChangeDiffConfig;
+    failDiffOnDangerousChange: boolean;
   }): Promise<SchemaPublishResult> {
     const incoming: SingleSchema = {
       kind: 'single',
@@ -267,6 +272,7 @@ export class SingleModel {
         approvedChanges: null,
         existingSdl: previousVersionSdl,
         incomingSdl: compositionCheck.result?.fullSchemaSdl ?? null,
+        failDiffOnDangerousChange,
       }),
     ]);
 

@@ -425,6 +425,7 @@ export class RegistryChecks {
     approvedChanges: null | Map<string, SchemaChangeType>;
     /** Settings for fetching conditional breaking changes. */
     conditionalBreakingChangeConfig: null | ConditionalBreakingChangeDiffConfig;
+    failDiffOnDangerousChange: null | boolean;
   }) {
     let existingSchema: GraphQLSchema | null = null;
     let incomingSchema: GraphQLSchema | null = null;
@@ -542,7 +543,10 @@ export class RegistryChecks {
     const coordinatesDiff = diffSchemaCoordinates(existingSchema, incomingSchema);
 
     for (const change of inspectorChanges) {
-      if (change.criticality === CriticalityLevel.Breaking) {
+      if (
+        change.criticality === CriticalityLevel.Breaking ||
+        (args.failDiffOnDangerousChange && change.criticality === CriticalityLevel.Dangerous)
+      ) {
         if (change.isSafeBasedOnUsage === true) {
           breakingChanges.push(change);
           continue;

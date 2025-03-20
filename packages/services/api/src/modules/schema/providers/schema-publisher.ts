@@ -163,7 +163,7 @@ export class SchemaPublisher {
     };
   }
 
-  private async getConditionalBreakingChangeConfiguration({
+  private async getBreakingChangeConfiguration({
     selector,
   }: {
     selector: {
@@ -171,20 +171,29 @@ export class SchemaPublisher {
       projectId: string;
       targetId: string;
     };
-  }): Promise<ConditionalBreakingChangeConfiguration | null> {
+  }): Promise<{
+    conditionalBreakingChangeConfiguration: ConditionalBreakingChangeConfiguration | null;
+    failDiffOnDangerousChange: boolean;
+  }> {
     try {
       const settings = await this.storage.getTargetSettings(selector);
 
       if (!settings.validation.enabled) {
         this.logger.debug('Usage validation disabled');
         this.logger.debug('Mark all as used');
-        return null;
+        return {
+          failDiffOnDangerousChange: settings.failDiffOnDangerousChange,
+          conditionalBreakingChangeConfiguration: null,
+        };
       }
 
       if (settings.validation.enabled && settings.validation.targets.length === 0) {
         this.logger.debug('Usage validation enabled but no targets to check against');
         this.logger.debug('Mark all as used');
-        return null;
+        return {
+          failDiffOnDangerousChange: settings.failDiffOnDangerousChange,
+          conditionalBreakingChangeConfiguration: null,
+        };
       }
 
       const targetIds = settings.validation.targets;
@@ -200,26 +209,29 @@ export class SchemaPublisher {
       });
 
       return {
-        conditionalBreakingChangeDiffConfig: {
-          period,
-          targetIds,
-          excludedClientNames: settings.validation.excludedClients?.length
-            ? settings.validation.excludedClients
-            : null,
-          requestCountThreshold:
-            settings.validation.breakingChangeFormula === 'PERCENTAGE'
-              ? Math.ceil(totalRequestCount * (settings.validation.percentage / 100))
-              : settings.validation.requestCount,
+        conditionalBreakingChangeConfiguration: {
+          conditionalBreakingChangeDiffConfig: {
+            period,
+            targetIds,
+            excludedClientNames: settings.validation.excludedClients?.length
+              ? settings.validation.excludedClients
+              : null,
+            requestCountThreshold:
+              settings.validation.breakingChangeFormula === 'PERCENTAGE'
+                ? Math.ceil(totalRequestCount * (settings.validation.percentage / 100))
+                : settings.validation.requestCount,
+          },
+          retentionInDays: settings.validation.period,
+          percentage: settings.validation.percentage,
+          requestCount: settings.validation.requestCount,
+          breakingChangeFormula: settings.validation.breakingChangeFormula,
+          totalRequestCount,
         },
-        retentionInDays: settings.validation.period,
-        percentage: settings.validation.percentage,
-        requestCount: settings.validation.requestCount,
-        breakingChangeFormula: settings.validation.breakingChangeFormula,
-        totalRequestCount,
+        failDiffOnDangerousChange: settings.failDiffOnDangerousChange,
       };
     } catch (error: unknown) {
       this.logger.error(`Failed to get settings`, error);
-      return null;
+      throw error;
     }
   }
 
@@ -542,8 +554,8 @@ export class SchemaPublisher {
       );
     });
 
-    const conditionalBreakingChangeConfiguration =
-      await this.getConditionalBreakingChangeConfiguration({
+    const { conditionalBreakingChangeConfiguration, failDiffOnDangerousChange } =
+      await this.getBreakingChangeConfiguration({
         selector,
       });
 
@@ -579,6 +591,7 @@ export class SchemaPublisher {
           approvedChanges: approvedSchemaChanges,
           conditionalBreakingChangeDiffConfig:
             conditionalBreakingChangeConfiguration?.conditionalBreakingChangeDiffConfig ?? null,
+          failDiffOnDangerousChange,
         });
         break;
       case ProjectType.FEDERATION:
@@ -623,6 +636,7 @@ export class SchemaPublisher {
             })) ?? null,
           conditionalBreakingChangeDiffConfig:
             conditionalBreakingChangeConfiguration?.conditionalBreakingChangeDiffConfig ?? null,
+          failDiffOnDangerousChange,
         });
         break;
       default:
@@ -1314,8 +1328,8 @@ export class SchemaPublisher {
           } as const;
         }
 
-        const conditionalBreakingChangeConfiguration =
-          await this.getConditionalBreakingChangeConfiguration({
+        const { conditionalBreakingChangeConfiguration, failDiffOnDangerousChange } =
+          await this.getBreakingChangeConfiguration({
             selector: {
               targetId: selector.targetId,
               projectId: selector.projectId,
@@ -1357,6 +1371,7 @@ export class SchemaPublisher {
           conditionalBreakingChangeDiffConfig:
             conditionalBreakingChangeConfiguration?.conditionalBreakingChangeDiffConfig ?? null,
           contracts,
+          failDiffOnDangerousChange,
         });
 
         let diffSchemaVersionId: string | null = null;
@@ -1646,8 +1661,8 @@ export class SchemaPublisher {
 
     this.logger.debug(`Found ${latestVersion?.schemas.length ?? 0} most recent schemas`);
 
-    const conditionalBreakingChangeConfiguration =
-      await this.getConditionalBreakingChangeConfiguration({
+    const { conditionalBreakingChangeConfiguration, failDiffOnDangerousChange } =
+      await this.getBreakingChangeConfiguration({
         selector: {
           organizationId: organization.id,
           projectId: project.id,
@@ -1707,6 +1722,7 @@ export class SchemaPublisher {
           baseSchema,
           conditionalBreakingChangeDiffConfig:
             conditionalBreakingChangeConfiguration?.conditionalBreakingChangeDiffConfig ?? null,
+          failDiffOnDangerousChange,
         });
         break;
       case ProjectType.FEDERATION:
@@ -1741,6 +1757,7 @@ export class SchemaPublisher {
           contracts,
           conditionalBreakingChangeDiffConfig:
             conditionalBreakingChangeConfiguration?.conditionalBreakingChangeDiffConfig ?? null,
+          failDiffOnDangerousChange,
         });
         break;
       default: {

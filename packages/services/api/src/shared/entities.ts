@@ -319,6 +319,7 @@ export interface Target {
   orgId: string;
   name: string;
   graphqlEndpointUrl: string | null;
+  failDiffOnDangerousChange: boolean;
 }
 
 export interface Token {
@@ -374,6 +375,7 @@ export interface TargetSettings {
     targets: string[];
     excludedClients: string[];
   };
+  failDiffOnDangerousChange: boolean;
 }
 
 export interface ComposeAndValidateResult {

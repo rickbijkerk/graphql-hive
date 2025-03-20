@@ -7,6 +7,7 @@ export const Target: Pick<
   TargetResolvers,
   | 'cleanId'
   | 'experimental_forcedLegacySchemaComposition'
+  | 'failDiffOnDangerousChange'
   | 'graphqlEndpointUrl'
   | 'id'
   | 'name'
