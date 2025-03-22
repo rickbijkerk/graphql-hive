@@ -5,6 +5,10 @@ jobs:
   # Release alpha version on NPM for Hive libraries
   npm:
     uses: the-guild-org/shared-config/.github/workflows/release-snapshot.yml@main
+    permissions:
+      pull-requests: write
+      actions: write
+      contents: write
     with:
       npmTag: alpha
       buildScript: build:libraries

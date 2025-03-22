@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       pull-requests: write
+      actions: write
+      contents: write
     env:
       HIVE_TOKEN: ${{ secrets.HIVE_TOKEN }}
       # AWS_* are used by Oclif CLI
