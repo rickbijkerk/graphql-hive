@@ -1,4 +1,4 @@
-.case-studies {
+.hive-prose {
   --nextra-content-width: 1208px;
   --article-max-width: 640px;
 
@@ -7,13 +7,8 @@
     width: var(--nextra-content-width);
     max-width: 100%;
 
-    /* hide leftmost column to left-align the case study */
-    & > div:first-of-type > :first-child {
-      @apply hidden;
-    }
-
     & > div {
-      @apply ml-0 pl-6 md:pl-12;
+      @apply ml-0 pl-6 max-sm:pr-6 md:pl-12;
     }
 
     & > div > article {
@@ -69,5 +64,11 @@
 
   & li > p {
     @apply mt-2;
+  }
+}
+
+@media (max-width: 768px) {
+  .hive-prose {
+    --article-max-width: 100%;
   }
 }
