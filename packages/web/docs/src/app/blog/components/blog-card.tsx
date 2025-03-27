@@ -62,12 +62,7 @@ export function BlogCard({ post, className, variant, tag }: BlogCardProps) {
             {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </time>
         </header>
-        <h3
-          className={cn(
-            'text-xl/7 lg:min-h-[172px]',
-            variant === 'featured' ? 'text-2xl/8' : 'xl:min-h-[120px]',
-          )}
-        >
+        <h3 className={cn('lg:min-h-[120px]', variant === 'featured' ? 'text-2xl/8' : 'text-xl/7')}>
           {title}
         </h3>
         <footer className="mt-auto flex items-center gap-3">
