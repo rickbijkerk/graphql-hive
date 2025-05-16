@@ -378,11 +378,7 @@ export function updateProjectSlug(input: UpdateProjectSlugInput, authToken: stri
       mutation updateProjectSlug($input: UpdateProjectSlugInput!) {
         updateProjectSlug(input: $input) {
           ok {
-            selector {
-              organizationSlug
-              projectSlug
-            }
-            project {
+            updatedProject {
               id
               name
               slug
