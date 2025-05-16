@@ -82,9 +82,13 @@ export function createOrganization(input: CreateOrganizationInput, authToken: st
                   }
                 }
                 memberRoles {
-                  id
-                  name
-                  locked
+                  edges {
+                    node {
+                      id
+                      name
+                      isLocked
+                    }
+                  }
                 }
                 rateLimit {
                   retentionInDays
@@ -139,11 +143,13 @@ export function inviteToOrganization(input: InviteToOrganizationByEmailInput, au
       mutation inviteToOrganization($input: InviteToOrganizationByEmailInput!) {
         inviteToOrganizationByEmail(input: $input) {
           ok {
-            id
-            createdAt
-            expiresAt
-            email
-            code
+            createdOrganizationInvitation {
+              id
+              createdAt
+              expiresAt
+              email
+              code
+            }
           }
           error {
             message
@@ -230,16 +236,18 @@ export function getOrganizationMembers(selector: OrganizationSelectorInput, auth
       query getOrganizationMembers($selector: OrganizationSelectorInput!) {
         organization(reference: { bySelector: $selector }) {
           members {
-            nodes {
-              id
-              user {
+            edges {
+              node {
                 id
-                email
-              }
-              role {
-                id
-                name
-                permissions
+                user {
+                  id
+                  email
+                }
+                role {
+                  id
+                  name
+                  permissions
+                }
               }
             }
           }
@@ -675,11 +683,15 @@ export function createMemberRole(input: CreateMemberRoleInput, authToken: string
               id
               slug
               memberRoles {
-                id
-                name
-                description
-                locked
-                permissions
+                edges {
+                  node {
+                    id
+                    name
+                    description
+                    isLocked
+                    permissions
+                  }
+                }
               }
             }
           }
@@ -733,11 +745,15 @@ export function deleteMemberRole(input: DeleteMemberRoleInput, authToken: string
               id
               slug
               memberRoles {
-                id
-                name
-                description
-                locked
-                permissions
+                edges {
+                  node {
+                    id
+                    name
+                    description
+                    isLocked
+                    permissions
+                  }
+                }
               }
             }
           }
@@ -764,7 +780,7 @@ export function updateMemberRole(input: UpdateMemberRoleInput, authToken: string
               id
               name
               description
-              locked
+              isLocked
               permissions
             }
           }

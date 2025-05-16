@@ -183,13 +183,17 @@ export function initSeed() {
             async inviteMember(
               email = 'some@email.com',
               inviteToken = ownerToken,
-              roleId?: string,
+              memberRoleId?: string,
             ) {
               const inviteResult = await inviteToOrganization(
                 {
+                  organization: {
+                    bySelector: {
+                      organizationSlug: organization.slug,
+                    },
+                  },
                   email,
-                  organizationSlug: organization.slug,
-                  roleId,
+                  memberRoleId,
                 },
                 inviteToken,
               ).then(r => r.expectNoGraphQLErrors());
@@ -205,7 +209,7 @@ export function initSeed() {
                 ownerToken,
               ).then(r => r.expectNoGraphQLErrors());
 
-              const members = membersResult.organization?.members?.nodes;
+              const members = membersResult.organization?.members?.edges?.map(edge => edge.node);
 
               if (!members) {
                 throw new Error(`Could not get members for org ${organization.slug}`);
@@ -848,13 +852,18 @@ export function initSeed() {
 
               const invitationResult = await inviteToOrganization(
                 {
-                  organizationSlug: organization.slug,
+                  organization: {
+                    bySelector: {
+                      organizationSlug: organization.slug,
+                    },
+                  },
                   email: memberEmail,
                 },
                 inviteToken,
               ).then(r => r.expectNoGraphQLErrors());
 
-              const code = invitationResult.inviteToOrganizationByEmail.ok?.code;
+              const code =
+                invitationResult.inviteToOrganizationByEmail.ok?.createdOrganizationInvitation.code;
 
               if (!code) {
                 throw new Error(
@@ -890,9 +899,17 @@ export function initSeed() {
                 ) {
                   const memberRoleAssignmentResult = await assignMemberRole(
                     {
-                      organizationSlug: organization.slug,
-                      userId: input.userId,
-                      roleId: input.roleId,
+                      organization: {
+                        bySelector: {
+                          organizationSlug: organization.slug,
+                        },
+                      },
+                      member: {
+                        byId: input.userId,
+                      },
+                      memberRole: {
+                        byId: input.roleId,
+                      },
                       resources: input.resources ?? {
                         mode: GraphQLSchema.ResourceAssignmentModeType.All,
                         projects: [],
@@ -908,15 +925,16 @@ export function initSeed() {
                   return memberRoleAssignmentResult.assignMemberRole.ok?.updatedMember;
                 },
                 async deleteMemberRole(
-                  roleId: string,
+                  memberRoleId: string,
                   options: { useMemberToken?: boolean } = {
                     useMemberToken: false,
                   },
                 ) {
                   const memberRoleDeletionResult = await deleteMemberRole(
                     {
-                      organizationSlug: organization.slug,
-                      roleId,
+                      memberRole: {
+                        byId: memberRoleId,
+                      },
                     },
                     options.useMemberToken ? memberToken : ownerToken,
                   ).then(r => r.expectNoGraphQLErrors());
@@ -941,7 +959,11 @@ export function initSeed() {
                   });
                   const memberRoleCreationResult = await createMemberRole(
                     {
-                      organizationSlug: organization.slug,
+                      organization: {
+                        bySelector: {
+                          organizationSlug: organization.slug,
+                        },
+                      },
                       name,
                       description: 'some description',
                       selectedPermissions: permissions,
@@ -965,9 +987,9 @@ export function initSeed() {
                   }
 
                   const createdRole =
-                    memberRoleCreationResult.createMemberRole.ok?.updatedOrganization.memberRoles?.find(
-                      r => r.name === name,
-                    );
+                    memberRoleCreationResult.createMemberRole.ok?.updatedOrganization.memberRoles?.edges.find(
+                      e => e.node.name === name,
+                    )?.node;
 
                   if (!createdRole) {
                     throw new Error(
@@ -990,8 +1012,9 @@ export function initSeed() {
                 ) {
                   const memberRoleUpdateResult = await updateMemberRole(
                     {
-                      organizationSlug: organization.slug,
-                      roleId: role.id,
+                      memberRole: {
+                        byId: role.id,
+                      },
                       name: role.name,
                       description: role.description,
                       selectedPermissions: permissions,
