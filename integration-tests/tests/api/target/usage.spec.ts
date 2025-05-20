@@ -2185,11 +2185,13 @@ const SubscriptionSchemaCheckQuery = graphql(/* GraphQL */ `
                 hash
                 name
                 countFormatted
+                percentage
                 percentageFormatted
               }
               topAffectedClients {
                 name
                 countFormatted
+                percentage
                 percentageFormatted
               }
             }
@@ -2893,6 +2895,7 @@ test.concurrent(
         countFormatted: '1',
         hash: 'c1bbc8385a4a6f4e4988be7394800adc',
         name: 'anonymous',
+        percentage: 100,
         percentageFormatted: '100.00%',
       },
     ]);
@@ -2900,6 +2903,7 @@ test.concurrent(
       {
         countFormatted: '1',
         name: 'integration-tests',
+        percentage: 100,
         percentageFormatted: '100.00%',
       },
     ]);
