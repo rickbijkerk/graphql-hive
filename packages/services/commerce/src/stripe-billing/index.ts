@@ -92,10 +92,13 @@ export const stripeBillingRouter = router({
 
       const actualSubscription = subscriptions[0] || null;
 
-      const paymentMethod = await ctx.stripeBilling.stripe.paymentMethods.list({
-        customer: customer.id,
-        type: 'card',
-      });
+      const paymentMethod = await ctx.stripeBilling.stripe.customers.listPaymentMethods(
+        customer.id,
+        {
+          type: 'card',
+          limit: 1,
+        },
+      );
 
       return {
         paymentMethod: paymentMethod.data[0] || null,
