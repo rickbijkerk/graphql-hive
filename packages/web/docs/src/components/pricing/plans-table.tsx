@@ -202,6 +202,32 @@ export function PlansTable({ className }: { className?: string }) {
               </PlansTableCell>
             </tr>
 
+            <tr>
+              <PlansTableCell>Schema Contracts</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                Unlimited
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                Unlimited
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                Unlimited
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>Schema Linting</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
             <TableSubheaderRow
               icon={<UsageIcon />}
               title="Analytics, Monitoring & Metrics"
@@ -290,7 +316,7 @@ export function PlansTable({ className }: { className?: string }) {
                   target="_blank"
                   className="text-sm text-green-800"
                 >
-                  Check out the Federation Audit
+                  Check out the federation audit
                 </TextLink>
               </PlansTableCell>
               <PlansTableCell activePlan={activePlan} plan="Hobby">
@@ -313,7 +339,7 @@ export function PlansTable({ className }: { className?: string }) {
                   target="_blank"
                   className="text-sm text-green-800"
                 >
-                  Check out the Federation Audit
+                  Check out the federation audit
                 </TextLink>
               </PlansTableCell>
               <PlansTableCell activePlan={activePlan} plan="Hobby">
@@ -328,7 +354,7 @@ export function PlansTable({ className }: { className?: string }) {
             </tr>
 
             <tr>
-              <PlansTableCell>OpenTelemetry (OTEL) Tracing</PlansTableCell>
+              <PlansTableCell>Subscriptions over WebSocket and SSE</PlansTableCell>
               <PlansTableCell activePlan={activePlan} plan="Hobby">
                 {YES}
               </PlansTableCell>
@@ -341,7 +367,7 @@ export function PlansTable({ className }: { className?: string }) {
             </tr>
 
             <tr>
-              <PlansTableCell>Prometheus Metrics</PlansTableCell>
+              <PlansTableCell>JWT authentication</PlansTableCell>
               <PlansTableCell activePlan={activePlan} plan="Hobby">
                 {YES}
               </PlansTableCell>
@@ -354,7 +380,98 @@ export function PlansTable({ className }: { className?: string }) {
             </tr>
 
             <tr>
-              <PlansTableCell>Custom Plugins</PlansTableCell>
+              <PlansTableCell>Persisted documents</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>OpenTelemetry (OTEL) tracing</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>Prometheus metrics</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>Demand control</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>Rate limiting</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>Subgraph request signing</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>Response caching</PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+
+            <tr>
+              <PlansTableCell>Custom plugins</PlansTableCell>
               <PlansTableCell activePlan={activePlan} plan="Hobby">
                 {YES}
               </PlansTableCell>
@@ -522,7 +639,29 @@ export function PlansTable({ className }: { className?: string }) {
               description="Enterprise-grade software, affordable for everyone."
             />
             <tr>
-              <PlansTableCell>SOC 2 Type II Certified</PlansTableCell>
+              <PlansTableCell>
+                SOC 2 Type II Certified
+                <br />
+                <TextLink
+                  href="https://security.graphql-hive.com"
+                  target="_blank"
+                  className="text-sm text-green-800"
+                >
+                  Learn more
+                </TextLink>
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Hobby">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Pro">
+                {YES}
+              </PlansTableCell>
+              <PlansTableCell activePlan={activePlan} plan="Enterprise">
+                {YES}
+              </PlansTableCell>
+            </tr>
+            <tr>
+              <PlansTableCell>Audit logs</PlansTableCell>
               <PlansTableCell activePlan={activePlan} plan="Hobby">
                 {YES}
               </PlansTableCell>
