@@ -62,8 +62,9 @@ jobs:
           router_version=$(cargo tree -i apollo-router --quiet | head -n 1 | awk -F" v" '{print $2}')
           plugin_version=$(jq -r '.version' packages/libraries/router/package.json)
 #          has_changes=$(git diff HEAD~ HEAD --name-only -- 'packages/libraries/router/Cargo.toml' 'Cargo.lock' 'configs/cargo/Cargo.lock' 'packages/libraries/router/package.json')
+          has_changes=true # wip fix 
 
-#          if [ "$has_changes" ]; then
+          if [ "$has_changes" ]; then
             image_tag_version="router${router_version}-plugin${plugin_version}"
 
             response=$(curl -L \
@@ -82,7 +83,7 @@ jobs:
             else 
               echo "No changes found in version $image_tag_version"
             fi
-#          fi
+          fi
 
   # Builds Rust crates, and creates Docker images
   dockerize:
