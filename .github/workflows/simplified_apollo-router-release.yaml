@@ -1,4 +1,4 @@
-name: apollo-router-release
+name: apollo-router-release (Simplified)
 on:
   # For PRs, this pipeline will use the commit ID as Docker image tag and R2 artifact prefix.
   pull_request:
