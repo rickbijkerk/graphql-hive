@@ -65,14 +65,10 @@ jobs:
 
           tag_exists=false
 
-          if [ ! "$tag_exists" ]; then
-            echo "Found changes in version $version_to_publish"
-            echo "release_version=$image_tag_version" >> $GITHUB_OUTPUT
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "release_latest=true" >> $GITHUB_OUTPUT
-          else 
-            echo "No changes found in version $image_tag_version"
-          fi
+          echo "Found changes in version $version_to_publish"
+          echo "release_version=$image_tag_version" >> $GITHUB_OUTPUT
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "release_latest=true" >> $GITHUB_OUTPUT
 
   # Builds Rust crates, and creates Docker images
   dockerize:
