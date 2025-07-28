@@ -58,8 +58,14 @@ jobs:
           echo "Running on push event, looking for changes in Rust crates or plugin versioning"
 
           image_name="apollo-router"
+          echo "image name: $image_name"
+          
           router_version=$(cargo tree -i apollo-router --quiet | head -n 1 | awk -F" v" '{print $2}')
+          echo "router version: $router_version"
+          
           plugin_version=$(jq -r '.version' packages/libraries/router/package.json)
+          echo "plugin version: $plugin_version"
+          
 
           image_tag_version="router${router_version}-plugin${plugin_version}"
 
