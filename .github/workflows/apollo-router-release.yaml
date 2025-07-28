@@ -3,7 +3,7 @@ on:
   # For PRs, this pipeline will use the commit ID as Docker image tag and R2 artifact prefix.
   pull_request:
     branches:
-      - main
+      - apollo-router-v1
     paths:
       - 'packages/libraries/router/**'
       - 'docker/router.dockerfile'
