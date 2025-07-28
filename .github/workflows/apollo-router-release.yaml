@@ -23,6 +23,7 @@ on:
       - 'Cargo.toml'
     branches:
       - main
+  workflow_dispatch: {}
 
 jobs:
   # This script is doing the following:
