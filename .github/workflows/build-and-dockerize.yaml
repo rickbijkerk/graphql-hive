@@ -35,15 +35,13 @@ on:
 jobs:
   build-and-dockerize:
     strategy:
-      matrix:
-        include:
-          - builder: hive-linux-x64-ubuntu2204
-            platform: linux/amd64
-            suffix: '-amd64'
-          - builder: hive-linux-arm64-ubuntu2204
-            platform: linux/arm64
-            suffix: '-arm64'
-    runs-on: ${{ matrix.builder }}
+    matrix:
+      include:
+        - platform: linux/amd64
+          suffix: '-amd64'
+        - platform: linux/arm64
+          suffix: '-arm64'
+    runs-on: ubuntu-22.04
     name: dockerize (${{ matrix.platform }})
     permissions:
       contents: read
