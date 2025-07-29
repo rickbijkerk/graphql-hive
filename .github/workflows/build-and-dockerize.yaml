@@ -43,6 +43,7 @@ jobs:
           - platform: linux/arm64
             suffix: '-arm64'
     runs-on: ubuntu-22.04
+    timeout-minutes: 120
     name: dockerize (${{ matrix.platform }})
     permissions:
       contents: read
