@@ -141,14 +141,15 @@ jobs:
             exit 1
           fi
 
-  # Build and publish Rust crates and binaries
-  binary:
-    uses: ./.github/workflows/publish-rust.yaml
-    secrets: inherit
-    needs:
-      - find-changes
-    if: ${{ needs.find-changes.outputs.should_release == 'true' }}
-    with:
-      publish: true
-      latest: ${{ needs.find-changes.outputs.release_latest == 'true' }}
-      version: ${{ needs.find-changes.outputs.release_version }}
+# we dont care about the binary here
+#  # Build and publish Rust crates and binaries
+#  binary:
+#    uses: ./.github/workflows/publish-rust.yaml
+#    secrets: inherit
+#    needs:
+#      - find-changes
+#    if: ${{ needs.find-changes.outputs.should_release == 'true' }}
+#    with:
+#      publish: true
+#      latest: ${{ needs.find-changes.outputs.release_latest == 'true' }}
+#      version: ${{ needs.find-changes.outputs.release_version }}
