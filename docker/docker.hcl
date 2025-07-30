@@ -33,7 +33,7 @@ variable "IMAGE_SUFFIX" {
 }
 
 variable "BUILD_PLATFORM" {
-  default = "linux/amd64,linux/arm64"
+  default = "linux/amd64"
 }
 
 function "get_target" {

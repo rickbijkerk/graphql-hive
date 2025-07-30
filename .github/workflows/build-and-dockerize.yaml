@@ -37,11 +37,11 @@ jobs:
     strategy:
       matrix:
         include:
-#          we dont need amd64, disabling gives us more github runner quota room
-#          - platform: linux/amd64
-#            suffix: '-amd64'
-          - platform: linux/arm64
-            suffix: '-arm64'
+          - platform: linux/amd64
+            suffix: '-amd64'
+#          we dont need arm64, disabling gives us more github runner quota room
+#          - platform: linux/arm64
+#            suffix: '-arm64'
     runs-on: ubuntu-22.04
     timeout-minutes: 240
     name: dockerize (${{ matrix.platform }})
