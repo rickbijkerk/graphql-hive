@@ -233,7 +233,7 @@ jobs:
               image_name="${{ inputs.registry }}/${{ inputs.imageName }}/$target:${{ inputs.imageTag }}"
               echo "image name: $image_name"
 
-              docker manifest create $image_name --amend "$image_name-arm64"
+              docker manifest create $image_name --amend "$image_name-amd64"
               docker manifest push $image_name
           done
 
@@ -248,6 +248,6 @@ jobs:
               image_name="${{ inputs.registry }}/${{ inputs.imageName }}/$target:latest"
               echo "image name: $image_name"
 
-              docker manifest create $image_name --amend "$image_name-arm64"
+              docker manifest create $image_name --amend "$image_name-amd64"
               docker manifest push $image_name
           done
