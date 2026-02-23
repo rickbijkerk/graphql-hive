@@ -32,10 +32,6 @@ on:
         type: boolean
         default: true
 
-      tag_suffix:
-        description: 'Optional suffix appended to the image tag (e.g. security-20260223)'
-        type: string
-        default: ''
 
 jobs:
   # This script is doing the following:
