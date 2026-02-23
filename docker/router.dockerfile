@@ -36,9 +36,8 @@ RUN cargo build --release
 # Runtime
 FROM debian:12-slim AS runtime
 
-RUN apt-get update
-RUN apt-get -y install ca-certificates
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y && apt-get -y install ca-certificates && rm -rf /var/lib/apt/lists/*
+
 
 LABEL org.opencontainers.image.title=$IMAGE_TITLE
 LABEL org.opencontainers.image.version=$RELEASE
