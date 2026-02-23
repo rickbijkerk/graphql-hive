@@ -23,7 +23,19 @@ on:
       - 'Cargo.toml'
     branches:
       - main
-  workflow_dispatch: {}
+  schedule:
+    - cron: '0 4 * * 1'  # Every Monday at 04:00 UTC, picks up base image security patches
+  workflow_dispatch:
+    inputs:
+      publish_latest:
+        description: 'Also tag as latest'
+        type: boolean
+        default: true
+
+      tag_suffix:
+        description: 'Optional suffix appended to the image tag (e.g. security-20260223)'
+        type: string
+        default: ''
 
 jobs:
   # This script is doing the following:
@@ -55,20 +67,22 @@ jobs:
             exit 0
           fi
 
-          echo "Running on push event, looking for changes in Rust crates or plugin versioning"
-
-          image_name="apollo-router"
           router_version=$(cargo tree -i apollo-router --quiet | head -n 1 | awk -F" v" '{print $2}')
           plugin_version=$(jq -r '.version' packages/libraries/router/package.json)
-          
           image_tag_version="router${router_version}-plugin${plugin_version}"
 
-          tag_exists=false
+          if [ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ] || [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
+            image_tag_version="${image_tag_version}-${GITHUB_RUN_ID}"
+          fi
 
-          echo "Found changes in version $version_to_publish"
           echo "release_version=$image_tag_version" >> $GITHUB_OUTPUT
           echo "should_release=true" >> $GITHUB_OUTPUT
-          echo "release_latest=true" >> $GITHUB_OUTPUT
+
+          if [ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]; then
+            echo "release_latest=${{ inputs.publish_latest }}" >> $GITHUB_OUTPUT
+          else
+            echo "release_latest=true" >> $GITHUB_OUTPUT
+          fi
 
   # Builds Rust crates, and creates Docker images
   dockerize:
